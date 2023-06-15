@@ -1,11 +1,11 @@
-function handles=drtaNWB_PlotBrowseTraces(app_plot,handles)
+function handles = drtaNWB_PlotBrowseTraces(handles)
 
 % draqPlotSpikePreview(handles)
 %
 % Plots preview for spike trains
 %
 %
-
+app_plot = handles;
 persistent auto_sign;
 
 if isempty(auto_sign)
@@ -76,35 +76,32 @@ try
     ********Need to figure out what each conditon is used for********
     %}
     if sum(shiftdata30==8)>0.05*handles.draq_p.ActualRate
-        setTrialsOutcome(app_plot,handles,'Hit');
-%         drtaBrowseTraces('setTrialsOutcome',handles.w.drtaBrowseTraces,'Hit ');
-        %set(handles.trialOutcome,'String','Hit ');
+        FigTitle_TrialsOutcome(handles.w.drta,'Hit')
+
     else
         %Miss
         if sum(shiftdata30==10)>0.05*handles.draq_p.ActualRate
-            setTrialsOutcome(app_plot,handles,'Miss');
-%             drtaBrowseTraces('setTrialsOutcome',handles.w.drtaBrowseTraces,'Miss');
-            %set(handles.trialOutcome,'String','Miss');
+            FigTitle_TrialsOutcome(handles.w.drta,'Miss')
+
         else
             %CR
             if sum(shiftdata30==12)>0.05*handles.draq_p.ActualRate
-                setTrialsOutcome(app_plot,handles,'CR');
-%                 drtaBrowseTraces('setTrialsOutcome',handles.w.drtaBrowseTraces,'CR  ');
-                %set(handles.trialOutcome,'String','CR  ');
+                FigTitle_TrialsOutcome(handles.w.drta,'CR')
+
             else
                 %FA
                 if sum(shiftdata30==14)>0.05*handles.draq_p.ActualRate
-                    setTrialsOutcome(app_plot,handles,'FA');
-%                     drtaBrowseTraces('setTrialsOutcome',handles.w.drtaBrowseTraces,'FA  ');
+                    FigTitle_TrialsOutcome(handles.w.drta,'FA')
+
                 else
                     %Short
                     if(length(find(shiftdata30>=1,1,'first'))==1)&(length(find(shiftdata30==8,1,'first'))~=1)&(length(find(shiftdata30==10,1,'first'))~=1)...
                             (length(find(shiftdata30==12,1,'first'))~=1)&(length(find(shiftdata30>0))>handles.draq_p.ActualRate*0.75)
-                        setTrialsOutcome(app_plot,handles,'Short');
-%                         drtaBrowseTraces('setTrialsOutcome',handles.w.drtaBrowseTraces,'Short');
+                        FigTitle_TrialsOutcome(handles.w.drta,'Short')
+
                     else
-                        setTrialsOutcome(app_plot,handles,'Inter');
-%                         drtaBrowseTraces('setTrialsOutcome',handles.w.drtaBrowseTraces,'Inter');
+                        FigTitle_TrialsOutcome(handles.w.drta,'Inter')
+
                     end
                 end
             end
@@ -182,12 +179,12 @@ if (handles.p.whichPlot~=11)
             data2=data1;
             for tetr=1:4
                 for jj=1:4
-                    if handles.p.subtractCh(4*(tetr-1)+jj)<=18
-                        if handles.p.subtractCh(4*(tetr-1)+jj)<=16
+                    if str2double(handles.p.subtractCh{4*(tetr-1)+jj}{:,:})<=18
+                        if str2double(handles.p.subtractCh{4*(tetr-1)+jj}{:,:})<=16
                             %Subtract one of the channels
-                            data1(:,(tetr-1)*4+jj)=data2(:,(tetr-1)*4+jj)-data2(:,handles.p.subtractCh((tetr-1)*4+jj));
+                            data1(:,(tetr-1)*4+jj)=data2(:,(tetr-1)*4+jj)-data2(:,str2double(handles.p.subtractCh{(tetr-1)*4+jj}{:,:}));
                         else
-                            if handles.p.subtractCh(4*(tetr-1)+jj)==17
+                            if str2double(handles.p.subtractCh{4*(tetr-1)+jj}{:,:})==17
                                 %Subtract tetrode mean
                                 data1(:,(tetr-1)*4+jj)=data2(:,(tetr-1)*4+jj)-mean(data2(:,(tetr-1)*4+1:(tetr-1)*4+4),2);
                             else
@@ -204,14 +201,14 @@ if (handles.p.whichPlot~=11)
         Creating the plots for each of the 16 chanels
         -----------------------------------------------------------
         %}
-        CHID = [1:16];
+        CHID = 1:16;
 %         drta_ax = handles.w.drtaBrowseTraces.GridLayout;
         for ii=1:noch
             %{
             Processing the data for each plot
             
             %}
-
+            handles.plot.s_handle(ii).Visible = "on";
             ii_from=floor((handles.draq_p.acquire_display_start+handles.p.start_display_time)...
                 *handles.draq_p.ActualRate+1);
             ii_to=floor((handles.draq_p.acquire_display_start+handles.p.start_display_time...
@@ -275,8 +272,8 @@ if (handles.p.whichPlot~=11)
             
             hold(handles.plot.s_handle(ii),"on")
             
-            plot(handles.plot.s_handle(ii),[handles.p.threshold(ii) handles.p.threshold(ii)],'r');
-            
+%             plot(handles.plot.s_handle(ii),[handles.p.threshold(ii), handles.p.threshold(ii)],'r');
+            yline(handles.plot.s_handle(ii),handles.p.threshold(ii),'r')
             if exist('odor_on')~=0
                 if ~isempty(odor_on)
                     plot(handles.plot.s_handle(ii),[odor_on odor_on],[-handles.draq_p.prev_ylim(ii) handles.draq_p.prev_ylim(ii)],'r');
@@ -313,7 +310,7 @@ if (handles.p.whichPlot~=11)
                     time=time+dt;
                     jj=jj+1;
                 end
-                tick_label{jj}=num2str(time);
+%                 tick_label{jj}=num2str(time);
                 handles.plot.s_handle(ii).XTickLabel = tick_label;
             else
                 handles.plot.s_handle(ii).XTick = 0:d_samples:handles.p.display_interval*handles.draq_p.ActualRate;
@@ -329,17 +326,16 @@ if (handles.p.whichPlot~=11)
         
     else
         %Display only one trace
-        %         try
-        %             close 10
-        %         catch
-        %         end
-        %
-        %         figure(10)
-        ii=handles.p.which_display-1;
-        bottom=bottom_offset+(0.80/noch)*(1-0.5);
-        height=height_delta;
-        s_handle(ii)=subplot('Position', [left_axis bottom right_axis height]);
-        
+
+        ii_only = str2double(handles.p.which_display);
+        for ii =  1:size(handles.plot.s_handle,2)
+            if ii == ii_only
+                handles.plot.s_handle(ii).Layout.Row = [2 34];
+                handles.plot.s_handle(ii).Layout.Column = [2 9];
+            else
+                handles.plot.s_handle(ii).Visible = "off";
+            end
+        end
         
         
         notch60HzFilt = designfilt('bandstopiir','FilterOrder',2, ...
@@ -370,7 +366,7 @@ if (handles.p.whichPlot~=11)
                     case 6 %Gamma1 35-65
                         fpass=[35 65];
                     case 7 %Gamma2 65-95
-                        fpass=[65 95];;
+                        fpass=[65 95];
                     case 8 %Gamma 35-95
                         fpass=[35 95];
                     case {9,10} %Spikes 500 
@@ -428,7 +424,7 @@ if (handles.p.whichPlot~=11)
         hold off
         
         
-        plot(s_handle(ii),data1(ii_from:ii_to,CHID(ii)),'-b');
+        plot(handles.plot.s_handle(ii),data1(ii_from:ii_to,CHID(ii)),'-b');
         hold on
         
 %         Commented out plot the trace to use in a figure for publication
@@ -455,15 +451,15 @@ if (handles.p.whichPlot~=11)
         
         
         two_half_med_SD=2.5*median(sdvec);
-        plot(s_handle(ii),[1 ii_to-ii_from+1],[two_half_med_SD two_half_med_SD],'-c');
+        plot(handles.plot.s_handle(ii),[1 ii_to-ii_from+1],[two_half_med_SD two_half_med_SD],'-c');
         hold on
-        plot(s_handle(ii),[1 ii_to-ii_from+1],[-two_half_med_SD -two_half_med_SD],'-c');
+        plot(handles.plot.s_handle(ii),[1 ii_to-ii_from+1],[-two_half_med_SD -two_half_med_SD],'-c');
         
         
         three_t_med_SD=3*median(sdvec);
-        plot(s_handle(ii),[1 ii_to-ii_from+1],[three_t_med_SD three_t_med_SD],'-y');
+        plot(handles.plot.s_handle(ii),[1 ii_to-ii_from+1],[three_t_med_SD three_t_med_SD],'-y');
         hold on
-        plot(s_handle(ii),[1 ii_to-ii_from+1],[-three_t_med_SD -three_t_med_SD],'-y');
+        plot(handles.plot.s_handle(ii),[1 ii_to-ii_from+1],[-three_t_med_SD -three_t_med_SD],'-y');
         
 
         
@@ -474,7 +470,7 @@ if (handles.p.whichPlot~=11)
         
         hold on
         if isfield(handles.p,'last_threshold')
-            plot(s_handle(ii),tim,[handles.p.last_threshold(ii) handles.p.last_threshold(ii)],'y');
+            plot(handles.plot.s_handle(ii),tim,[handles.p.last_threshold(ii) handles.p.last_threshold(ii)],'y');
         end
         
         %Set threshold if requested by user
@@ -511,12 +507,12 @@ if (handles.p.whichPlot~=11)
         
         drtaThresholdSnips('update_p',handles.w.drtaThresholdSnips,handles);
         
-        plot(s_handle(ii),tim,[handles.p.threshold(ii) handles.p.threshold(ii)],'r');
+        plot(handles.plot.s_handle(ii),tim,[handles.p.threshold(ii) handles.p.threshold(ii)],'r');
         thr= handles.p.threshold(ii);
         
         if exist('odor_on')~=0
             if ~isempty(odor_on)
-                plot(s_handle(ii),[odor_on odor_on],[-handles.draq_p.prev_ylim(ii) handles.draq_p.prev_ylim(ii)],'r');
+                plot(handles.plot.s_handle(ii),[odor_on odor_on],[-handles.draq_p.prev_ylim(ii) handles.draq_p.prev_ylim(ii)],'r');
             end
         end
         
@@ -535,7 +531,7 @@ if (handles.p.whichPlot~=11)
         %             hold off
         %         end
         
-        ylim(s_handle(ii),[-handles.draq_p.prev_ylim(ii) handles.draq_p.prev_ylim(ii)]);
+        ylim(handles.plot.s_handle(ii),[-handles.draq_p.prev_ylim(ii) handles.draq_p.prev_ylim(ii)]);
         set(gca,'YTick',[-handles.draq_p.prev_ylim(ii)+(handles.draq_p.prev_ylim(ii)/3) handles.draq_p.prev_ylim(ii)-(handles.draq_p.prev_ylim(ii)/3)]);
         tick_label={};
         tick_label{1}=num2str(floor(-2*handles.draq_p.prev_ylim(ii)/3));
@@ -543,8 +539,8 @@ if (handles.p.whichPlot~=11)
         set(gca,'YTickLabel',tick_label);
         
         
-        xlim(s_handle(ii),[1 1+handles.p.display_interval*handles.draq_p.ActualRate]);
-        ylabel(s_handle(ii),num2str(ii));
+        xlim(handles.plot.s_handle(ii),[1 1+handles.p.display_interval*handles.draq_p.ActualRate]);
+        ylabel(handles.plot.s_handle(ii),num2str(ii));
         
         xlabel('Time (sec)');
         dt=handles.p.display_interval/5;
@@ -574,48 +570,48 @@ end
 
 
 
-function [p_handle s_handle]= drtaSetupBrowse(handles)
-
-%Setup the plots
-d_samples=0;
-noch=handles.draq_p.no_spike_ch;
-for (ii=1:noch)
-    bottom=bottom_offset+(0.80/noch)*(ii-0.5);
-    height=height_delta/noch;
-    s_handle(ii)=subplot('Position', [left_axis bottom right_axis height]);
-    p_handle(ii)= plot(zeros(handles.p.display_interval*handles.draq_p.ActualRate,1));
-    v_max=(handles.draq_p.prev_ylim(ii)*handles.draq_p.pre_gain*handles.draq_p.daq_gain/1000000);
-    v_min=-(handles.draq_p.prev_ylim(ii)*handles.draq_p.pre_gain*handles.draq_p.daq_gain/1000000);
-    scaling = handles.draq_p.scaling;
-    offset = handles.draq_p.offset;
-    nat_max=(v_max-offset)/scaling;
-    nat_min=(v_min-offset)/scaling;
-    ylim(s_handle(ii),[nat_min nat_max]); %Note numbers are native
-    set(gca,'YTick',[( ((nat_max+nat_min)/2)-((nat_max-nat_min)/3) ) (nat_max+nat_min)/2 ( ((nat_max+nat_min)/2)+ ((nat_max-nat_min)/3) )]);
-    tick_label{1}=num2str(floor(-2*handles.draq_p.prev_ylim(ii)/3));
-    tick_label{2}='';
-    tick_label{3}=num2str(floor(2*handles.draq_p.prev_ylim(ii)/3));
-    set(gca,'YTickLabel',tick_label);
-    xlim(s_handle(ii),[1 1+handles.p.display_interval*handles.draq_p.ActualRate]);
-    ylabel(s_handle(ii),num2str(ii));
-    if ii==1
-        xlabel('Time (sec)');
-        dt=handles.p.display_interval/5;
-        dt=round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
-        d_samples=dt*handles.draq_p.ActualRate;
-        set(gca,'XTick',0:d_samples:handles.p.display_interval*handles.draq_p.ActualRate);
-        time=handles.p.start_display_time;
-        jj=1;
-        while time<(handles.p.start_display_time+handles.p.display_interval)
-            tick_label{jj}=num2str(time);
-            time=time+dt;
-            jj=jj+1;
-        end
-        tick_label{jj}=num2str(time);
-        set(gca,'XTickLabel',tick_label);
-    else
-        set(gca,'XTick',0:d_samples:handles.p.display_interval*handles.draq_p.ActualRate);
-        set(gca,'XTickLabel','');
-    end
-    
-end
+% function [p_handle s_handle]= drtaSetupBrowse(handles)
+% 
+% %Setup the plots
+% d_samples=0;
+% noch=handles.draq_p.no_spike_ch;
+% for (ii=1:noch)
+%     bottom=bottom_offset+(0.80/noch)*(ii-0.5);
+%     height=height_delta/noch;
+%     s_handle(ii)=subplot('Position', [left_axis bottom right_axis height]);
+%     p_handle(ii)= plot(zeros(handles.p.display_interval*handles.draq_p.ActualRate,1));
+%     v_max=(handles.draq_p.prev_ylim(ii)*handles.draq_p.pre_gain*handles.draq_p.daq_gain/1000000);
+%     v_min=-(handles.draq_p.prev_ylim(ii)*handles.draq_p.pre_gain*handles.draq_p.daq_gain/1000000);
+%     scaling = handles.draq_p.scaling;
+%     offset = handles.draq_p.offset;
+%     nat_max=(v_max-offset)/scaling;
+%     nat_min=(v_min-offset)/scaling;
+%     ylim(s_handle(ii),[nat_min nat_max]); %Note numbers are native
+%     set(gca,'YTick',[( ((nat_max+nat_min)/2)-((nat_max-nat_min)/3) ) (nat_max+nat_min)/2 ( ((nat_max+nat_min)/2)+ ((nat_max-nat_min)/3) )]);
+%     tick_label{1}=num2str(floor(-2*handles.draq_p.prev_ylim(ii)/3));
+%     tick_label{2}='';
+%     tick_label{3}=num2str(floor(2*handles.draq_p.prev_ylim(ii)/3));
+%     set(gca,'YTickLabel',tick_label);
+%     xlim(s_handle(ii),[1 1+handles.p.display_interval*handles.draq_p.ActualRate]);
+%     ylabel(s_handle(ii),num2str(ii));
+%     if ii==1
+%         xlabel('Time (sec)');
+%         dt=handles.p.display_interval/5;
+%         dt=round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
+%         d_samples=dt*handles.draq_p.ActualRate;
+%         set(gca,'XTick',0:d_samples:handles.p.display_interval*handles.draq_p.ActualRate);
+%         time=handles.p.start_display_time;
+%         jj=1;
+%         while time<(handles.p.start_display_time+handles.p.display_interval)
+%             tick_label{jj}=num2str(time);
+%             time=time+dt;
+%             jj=jj+1;
+%         end
+%         tick_label{jj}=num2str(time);
+%         set(gca,'XTickLabel',tick_label);
+%     else
+%         set(gca,'XTick',0:d_samples:handles.p.display_interval*handles.draq_p.ActualRate);
+%         set(gca,'XTickLabel','');
+%     end
+%     
+% end
