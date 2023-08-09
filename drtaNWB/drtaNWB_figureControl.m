@@ -125,6 +125,7 @@ if handles.p.whichPlot ~=11
     end
     rangespace = -0.7;
     NumberSeen = 1;
+    SeenNumber = sum(handles.p.VisableChannel);
     for ii=1:noch
         if handles.p.VisableChannel(ii) == 1
             %{
@@ -202,34 +203,44 @@ if handles.p.whichPlot ~=11
                     MaxedData(oy,1) = data1(ii_from+oy-1,ii);
                 end
             end
-
             NeededNormed = [...
-                -handles.draq_p.prev_ylim(1); ...
-                handles.draq_p.prev_ylim(1); ...
-                (floor(-2*handles.draq_p.prev_ylim(1)/3)); ...
-                (floor(2*handles.draq_p.prev_ylim(1)/3)); ...
-                MaxedData];
-            dataNorm = normalize(NeededNormed ,"range",[(rangespace) (rangespace+1)]);
-            CombinedDataSets(:,NumberSeen) = dataNorm(5:end);
-            Wlimit(:,NumberSeen) = dataNorm(1:2);
-            Mlimit(:,NumberSeen) = dataNorm(3:4);
-            %stacking the y-tics and labels
-
-
-            %stacking location for y-lines and y-labels
-            yPlace(ii) = rangespace-.15; 
-            NumberSeen = NumberSeen + 1;
-            %stacking threshold locations
-%             disp(handles.p.threshold(ii))
-
-            %stacking other plot index locations
+                    -handles.draq_p.prev_ylim(1); ...
+                    handles.draq_p.prev_ylim(1); ...
+                    (floor(-2*handles.draq_p.prev_ylim(1)/3)); ...
+                    (floor(2*handles.draq_p.prev_ylim(1)/3)); ...
+                    MaxedData];
+            if SeenNumber > 1
+                
+                dataNorm = normalize(NeededNormed ,"range",[(rangespace) (rangespace+1)]);
+                CombinedDataSets(:,NumberSeen) = dataNorm(5:end);
+                Wlimit(:,NumberSeen) = dataNorm(1:2);
+                Mlimit(:,NumberSeen) = dataNorm(3:4);
+                yPlace(ii) = rangespace-.15; 
+                NumberSeen = NumberSeen + 1;
+            else
+                CombinedDataSets = NeededNormed;
+            end
         end
 
     end
-
+    %happends independent of the number of channels shown
     PlotSpace = FullStruct.GridLayout5.Children.findobj('Tag','plotField');
-    plot(PlotSpace,CombinedDataSets)             
-    ylim(PlotSpace,[(yPlace(1)-.1) (yPlace(end)+1.4)]);
+    plot(PlotSpace,CombinedDataSets)
+    if SeenNumber > 1
+        ylim(PlotSpace,[(yPlace(1)-.1) (yPlace(end)+1.4)]);
+        %placing all the y-lines
+        if size(yPlace,2) > 1
+            yline(PlotSpace,yPlace(2:end),"LineWidth",0.8,"Color","black","Alpha",1)
+        end
+        yline(PlotSpace,[sort([Wlimit(1,:),Wlimit(2,:)])], ...
+            "LineWidth",0.4,"Color","black","Alpha",1,"LineStyle",":")
+        %placing all tick lines for lables and index points
+        yticks(PlotSpace,sort([Mlimit(1,:),Mlimit(2,:)],2))
+        ChLables = yPlace+0.65;
+        tLabels = [(yPlace+0.15),(yPlace+1.15)];
+    else
+        ylim(PlotSpace,[-handles.draq_p.prev_ylim(1) handles.draq_p.prev_ylim(1)])
+    end
     xlabel(PlotSpace,'Time (sec)');
     %placing all the x-lines
     if exist("odor_on","var") ~= 0 && ...
@@ -237,16 +248,7 @@ if handles.p.whichPlot ~=11
         xline(PlotSpace,odor_on,"LineWidth",0.8,"Color","black")
         xline(PlotSpace,odor_on,"LineWidth",12,"Alpha",0.3,"Color","red")
     end
-    %placing all the y-lines
-    if size(yPlace,2) > 1
-        yline(PlotSpace,yPlace(2:end),"LineWidth",0.8,"Color","black","Alpha",1)
-    end
-    yline(PlotSpace,[sort([Wlimit(1,:),Wlimit(2,:)])], ...
-        "LineWidth",0.4,"Color","black","Alpha",1,"LineStyle",":")
-    %placing all tick lines for lables and index points
-    yticks(PlotSpace,sort([Mlimit(1,:),Mlimit(2,:)],2))
-    ChLables = yPlace+0.65;
-    tLabels = [(yPlace+0.15),(yPlace+1.15)];
+    
     
     dt=handles.p.display_interval/5;
     dt=round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
