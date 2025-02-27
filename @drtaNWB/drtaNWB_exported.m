@@ -6,6 +6,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         TabGroup                    matlab.ui.container.TabGroup
         drta_loadTab                matlab.ui.container.Tab
         GridLayoutLoad              matlab.ui.container.GridLayout
+        MetaDataProtocolLabel       matlab.ui.control.Label
+        DisplayProtocolLabel        matlab.ui.control.Label
         Cprogrom_DropDown           matlab.ui.control.DropDown
         Savematfile_Button          matlab.ui.control.Button
         OutputLocationLabel         matlab.ui.control.Label
@@ -717,6 +719,24 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Cprogrom_DropDown.Layout.Row = 8;
             app.Cprogrom_DropDown.Layout.Column = [5 6];
             app.Cprogrom_DropDown.Value = 'dropcnsampler';
+
+            % Create DisplayProtocolLabel
+            app.DisplayProtocolLabel = uilabel(app.GridLayoutLoad);
+            app.DisplayProtocolLabel.HorizontalAlignment = 'center';
+            app.DisplayProtocolLabel.FontName = 'Times New Roman';
+            app.DisplayProtocolLabel.Visible = 'off';
+            app.DisplayProtocolLabel.Layout.Row = 7;
+            app.DisplayProtocolLabel.Layout.Column = [2 3];
+            app.DisplayProtocolLabel.Text = 'Display Protocol';
+
+            % Create MetaDataProtocolLabel
+            app.MetaDataProtocolLabel = uilabel(app.GridLayoutLoad);
+            app.MetaDataProtocolLabel.HorizontalAlignment = 'center';
+            app.MetaDataProtocolLabel.FontName = 'Times New Roman';
+            app.MetaDataProtocolLabel.Visible = 'off';
+            app.MetaDataProtocolLabel.Layout.Row = 7;
+            app.MetaDataProtocolLabel.Layout.Column = [5 6];
+            app.MetaDataProtocolLabel.Text = 'Meta Data Protocol';
 
             % Create Browse_TracesTab
             app.Browse_TracesTab = uitab(app.TabGroup);

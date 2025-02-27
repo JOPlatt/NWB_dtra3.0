@@ -14,3 +14,5 @@ app.Trial_Label.Visible = "on";
 app.trial_amt.Visible = "on";
 app.Cprogrom_DropDown.Visible = "on";
 app.LocationForOutput.Value = PathName;
+app.DisplayProtocolLabel.Visible = "on";
+app.MetaDataProtocolLabel.Visible = "on";
