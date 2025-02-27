@@ -62,6 +62,9 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         ControlsLabel               matlab.ui.control.Label
         DigitalTracesLabel          matlab.ui.control.Label
         DigitalControls_Grid        matlab.ui.container.GridLayout
+        Trace_ylimtsMax_EditField   matlab.ui.control.NumericEditField
+        Trace_ylimitsMin_EditField  matlab.ui.control.NumericEditField
+        Trace_ylimits_Label         matlab.ui.control.Label
         ShiftDataBitand_EditField   matlab.ui.control.NumericEditField
         Shiftdatabitand_Label       matlab.ui.control.Label
         ShiftBitand_EditField       matlab.ui.control.NumericEditField
@@ -1046,7 +1049,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create DigitalControls_Grid
             app.DigitalControls_Grid = uigridlayout(app.DigitalMain_GridLayout);
             app.DigitalControls_Grid.ColumnWidth = {100, 40, 70, 70, '1x'};
-            app.DigitalControls_Grid.RowHeight = {'1x', 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, '1x'};
+            app.DigitalControls_Grid.RowHeight = {'1x', 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, '1x'};
             app.DigitalControls_Grid.ColumnSpacing = 8;
             app.DigitalControls_Grid.RowSpacing = 2;
             app.DigitalControls_Grid.Padding = [15 10 10 10];
@@ -1057,14 +1060,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.ExcLicks_CheckBox = uicheckbox(app.DigitalControls_Grid);
             app.ExcLicks_CheckBox.Text = '';
             app.ExcLicks_CheckBox.FontName = 'Times New Roman';
-            app.ExcLicks_CheckBox.Layout.Row = 2;
+            app.ExcLicks_CheckBox.Layout.Row = 4;
             app.ExcLicks_CheckBox.Layout.Column = 2;
 
             % Create ExcLicks_Label
             app.ExcLicks_Label = uilabel(app.DigitalControls_Grid);
             app.ExcLicks_Label.HorizontalAlignment = 'center';
             app.ExcLicks_Label.FontName = 'Times New Roman';
-            app.ExcLicks_Label.Layout.Row = 2;
+            app.ExcLicks_Label.Layout.Row = 4;
             app.ExcLicks_Label.Layout.Column = 1;
             app.ExcLicks_Label.Text = 'Exclude Licks';
 
@@ -1072,7 +1075,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.TrialNoDigit_Label = uilabel(app.DigitalControls_Grid);
             app.TrialNoDigit_Label.HorizontalAlignment = 'center';
             app.TrialNoDigit_Label.FontName = 'Times New Roman';
-            app.TrialNoDigit_Label.Layout.Row = 4;
+            app.TrialNoDigit_Label.Layout.Row = 6;
             app.TrialNoDigit_Label.Layout.Column = 1;
             app.TrialNoDigit_Label.Text = 'Trial No.';
 
@@ -1081,14 +1084,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.TrialNoDigit_EditField.Tag = 'DigTnumField';
             app.TrialNoDigit_EditField.HorizontalAlignment = 'center';
             app.TrialNoDigit_EditField.FontName = 'Times New Roman';
-            app.TrialNoDigit_EditField.Layout.Row = 4;
+            app.TrialNoDigit_EditField.Layout.Row = 6;
             app.TrialNoDigit_EditField.Layout.Column = 2;
 
             % Create TrialNoDigitPrior_Button
             app.TrialNoDigitPrior_Button = uibutton(app.DigitalControls_Grid, 'push');
             app.TrialNoDigitPrior_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
             app.TrialNoDigitPrior_Button.Tag = 'TnumMinus';
-            app.TrialNoDigitPrior_Button.Layout.Row = 4;
+            app.TrialNoDigitPrior_Button.Layout.Row = 6;
             app.TrialNoDigitPrior_Button.Layout.Column = 3;
             app.TrialNoDigitPrior_Button.Text = '<--';
 
@@ -1096,14 +1099,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.TrialNoDigitNext_Button = uibutton(app.DigitalControls_Grid, 'push');
             app.TrialNoDigitNext_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
             app.TrialNoDigitNext_Button.Tag = 'TnumPlus';
-            app.TrialNoDigitNext_Button.Layout.Row = 4;
+            app.TrialNoDigitNext_Button.Layout.Row = 6;
             app.TrialNoDigitNext_Button.Layout.Column = 4;
             app.TrialNoDigitNext_Button.Text = '-->';
 
             % Create IntervalSecDigit_Label
             app.IntervalSecDigit_Label = uilabel(app.DigitalControls_Grid);
             app.IntervalSecDigit_Label.HorizontalAlignment = 'center';
-            app.IntervalSecDigit_Label.Layout.Row = 6;
+            app.IntervalSecDigit_Label.Layout.Row = 8;
             app.IntervalSecDigit_Label.Layout.Column = 1;
             app.IntervalSecDigit_Label.Text = 'Interval (sec):';
 
@@ -1111,7 +1114,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.IntervalSecDigit_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
             app.IntervalSecDigit_EditField.Tag = 'InterDigi';
             app.IntervalSecDigit_EditField.HorizontalAlignment = 'center';
-            app.IntervalSecDigit_EditField.Layout.Row = 6;
+            app.IntervalSecDigit_EditField.Layout.Row = 8;
             app.IntervalSecDigit_EditField.Layout.Column = 2;
 
             % Create UpdateDigitPlots_Button
@@ -1126,21 +1129,21 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Shiftdropcbitand_Label = uilabel(app.DigitalControls_Grid);
             app.Shiftdropcbitand_Label.HorizontalAlignment = 'center';
             app.Shiftdropcbitand_Label.FontName = 'Times New Roman';
-            app.Shiftdropcbitand_Label.Layout.Row = 10;
+            app.Shiftdropcbitand_Label.Layout.Row = 12;
             app.Shiftdropcbitand_Label.Layout.Column = 1;
             app.Shiftdropcbitand_Label.Text = 'Shift dropc bitand';
 
             % Create ShiftBitand_EditField
             app.ShiftBitand_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
             app.ShiftBitand_EditField.HorizontalAlignment = 'center';
-            app.ShiftBitand_EditField.Layout.Row = 10;
+            app.ShiftBitand_EditField.Layout.Row = 12;
             app.ShiftBitand_EditField.Layout.Column = 2;
 
             % Create Shiftdatabitand_Label
             app.Shiftdatabitand_Label = uilabel(app.DigitalControls_Grid);
             app.Shiftdatabitand_Label.HorizontalAlignment = 'center';
             app.Shiftdatabitand_Label.FontName = 'Times New Roman';
-            app.Shiftdatabitand_Label.Layout.Row = 8;
+            app.Shiftdatabitand_Label.Layout.Row = 10;
             app.Shiftdatabitand_Label.Layout.Column = 1;
             app.Shiftdatabitand_Label.Text = 'Shift data bitand';
 
@@ -1149,6 +1152,27 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.ShiftDataBitand_EditField.HorizontalAlignment = 'center';
             app.ShiftDataBitand_EditField.Layout.Row = 8;
             app.ShiftDataBitand_EditField.Layout.Column = 2;
+
+            % Create Trace_ylimits_Label
+            app.Trace_ylimits_Label = uilabel(app.DigitalControls_Grid);
+            app.Trace_ylimits_Label.HorizontalAlignment = 'center';
+            app.Trace_ylimits_Label.Layout.Row = 2;
+            app.Trace_ylimits_Label.Layout.Column = 1;
+            app.Trace_ylimits_Label.Text = 'Trace y-limits';
+
+            % Create Trace_ylimitsMin_EditField
+            app.Trace_ylimitsMin_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
+            app.Trace_ylimitsMin_EditField.HorizontalAlignment = 'center';
+            app.Trace_ylimitsMin_EditField.Layout.Row = 2;
+            app.Trace_ylimitsMin_EditField.Layout.Column = 3;
+            app.Trace_ylimitsMin_EditField.Value = 1500;
+
+            % Create Trace_ylimtsMax_EditField
+            app.Trace_ylimtsMax_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
+            app.Trace_ylimtsMax_EditField.HorizontalAlignment = 'center';
+            app.Trace_ylimtsMax_EditField.Layout.Row = 2;
+            app.Trace_ylimtsMax_EditField.Layout.Column = 4;
+            app.Trace_ylimtsMax_EditField.Value = 3000;
 
             % Create DigitalTracesLabel
             app.DigitalTracesLabel = uilabel(app.DigitalMain_GridLayout);

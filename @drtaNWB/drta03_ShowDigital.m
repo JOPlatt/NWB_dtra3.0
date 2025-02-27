@@ -28,7 +28,6 @@ data=drtaNWB_GetTraceData(handles);
 %21 photodiode
 %22 digital input
 
-%plot trigger (17)
 this_record=17;
 %trig=data_this_trial(floor((this_record-1)*handles.draq_p.ActualRate*handles.draq_p.sec_per_trigger):floor(this_record*handles.draq_p.ActualRate*handles.draq_p.sec_per_trigger));
 trig=data(:,this_record);
@@ -40,10 +39,8 @@ ii_from=floor((handles.draq_p.acquire_display_start+handles.p.start_display_time
 ii_to=floor((handles.draq_p.acquire_display_start+handles.p.start_display_time...
             +handles.p.display_interval)*handles.draq_p.ActualRate);
 
-%trig = data(:,17);
 plot(PlotNo1,trig(ii_from:ii_to));
 
-%xlabel('Time (sec)');
 ylabel(PlotNo1,'Trigger');
 dt=handles.p.display_interval/5;
 dt=round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
@@ -58,10 +55,9 @@ while time<(handles.p.start_display_time+handles.p.display_interval)
 end
 tick_label{jj}=num2str(time);
 xticklabels(PlotNo1,tick_label)
-% set(gca,'XTickLabel',tick_label);
 
 xlim(PlotNo1,[1 1+handles.p.display_interval*handles.draq_p.ActualRate]);
-ylim(PlotNo1,[500 3000]);
+ylim(PlotNo1,[app.Trace_ylimitsMin_EditField.Value app.Trace_ylimtsMax_EditField.Value]);
 
 
 %Plot 18 to 21
@@ -111,19 +107,6 @@ for ii=18:handles.draq_p.no_chans-1
             ylabel(CurrentPlot,'Sniffing');
         case 19
             ylabel(CurrentPlot,'Lick');
-            pffft=1;
-%             try
-%                 close 1
-%             catch
-%             end
-%             
-%             hFig1 = figure(1);
-%             set(hFig1, 'units','normalized','position',[.15 .6 .5 .23])
-%             ax=gca;ax.LineWidth=3;
-%             
-%              plot([1:length(this_data(ii_from:ii_to))]/handles.draq_p.ActualRate,this_data(ii_from:ii_to),'-b');
-            
-            
         case 20
             ylabel(CurrentPlot,'In port');
         case 21
@@ -146,10 +129,7 @@ try
     else
         shiftdata_all=bitand(this_data,shiftNum);
     end
-    % hold off
-    plot(CurrentPlot,shiftdata_all(ii_from:ii_to));
-    % hold on
-    
+    plot(CurrentPlot,shiftdata_all(ii_from:ii_to));    
     %Draw a red line at odor on
     bitNum = app.ShiftBitand_EditField.Value;
     if bitNum == 0
@@ -180,9 +160,7 @@ try
     ylim(CurrentPlot,[0 35]);
     xlim(CurrentPlot,[1 1+handles.p.display_interval*handles.draq_p.ActualRate]);
     ylabel(CurrentPlot,'Digital');
-    
-    pffft=1;
-    
+        
     %This code is here to plot the digital data in a separate figure
        
 %     try
@@ -252,6 +230,3 @@ end
 % max_laserTTL_data=max(laserTTL_data);
 % 
 % plot((max_filtLFP_data/max_laserTTL_data)*laserTTL_data(ii_from:ii_to),'-r');
-
-
-pffft=1;
