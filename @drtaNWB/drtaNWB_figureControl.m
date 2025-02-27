@@ -89,7 +89,7 @@ if app.Flags.DataShownAs ~=12
         %}
         %Filter with different bandwidths
         case 2
-            fpass = [app.drta_handles.p.lfp.minLFP app.drta_handles.p.lfp.maxLFP];
+            fpass = [app.min_amt.Value app.max_amt.Value];
         case 3
             fpass=[4 100];
         case 4 %High Theta 6-10
@@ -107,6 +107,12 @@ if app.Flags.DataShownAs ~=12
         case {10,11} %Spikes 500-5000
             fpass=[500 5000];
     end
+    app.min_amt.Value = fpass(1);
+    app.max_amt.Value = fpass(2);
+
+    app.drta_handles.p.lfp.minLFP=fpass(1);
+    app.drta_handles.p.lfp.maxLFP=fpass(2);
+    
     %filtering the data
     if app.drta_handles.p.whichPlot ~= 1
         bpFilt = designfilt('bandpassiir','FilterOrder',6, ...

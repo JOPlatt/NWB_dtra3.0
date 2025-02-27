@@ -131,5 +131,9 @@ for trialNo=1:length(app.drta_handles.draq_d.t_trial)
 end
 app.drta_handles.p.trialNo=old_trial;
 app.drta_handles.p.exc_sn_thr=app.drta_handles.p.lick_th_frac*mean(ninetynine_per-one_per);
-app.drta_handles.p.lfp.maxLFP=9900;
-app.drta_handles.p.lfp.minLFP=-9900;
+app.drta_handles.p.lfp.maxLFP=3900;
+app.drta_handles.p.lfp.minLFP=50;
+
+app.min_amt.Value = app.drta_handles.p.lfp.minLFP;
+app.max_amt.Value = app.drta_handles.p.lfp.maxLFP;
+
