@@ -12,7 +12,7 @@ end
 app.drta_handles.p.VisableChannel = ChannelValues;
 noch = size(app.drta_handles.p.VisableChannel,2);
 
-
+currentChan = find(app.drta_handles.p.VisableChannel == 1);
 
 
 
@@ -67,7 +67,7 @@ try
     else
         FigTitle_TrialsOutcome(app.drta_handles.w.drta,'Inter')
 
-    
+
     end
 catch
 end
@@ -78,7 +78,7 @@ if app.Flags.DataShownAs ~=12
         case 1
             %Raw data
             data1=data;
-        %{
+            %{
         ---------------------------------------------------------
         Filters the displayed graph(s) by only showong the chosen
         bandwidth. 
@@ -86,8 +86,8 @@ if app.Flags.DataShownAs ~=12
         5-Full Beta, 6-Low Gamma, 7-High Gamma, 8-Full Gamma,
         9 or 10-Spike range 500-5000
         ---------------------------------------------------------
-        %}
-        %Filter with different bandwidths
+            %}
+            %Filter with different bandwidths
         case 2
             fpass = [app.min_amt.Value app.max_amt.Value];
         case 3
@@ -107,19 +107,20 @@ if app.Flags.DataShownAs ~=12
         case {10,11} %Spikes 500-5000
             fpass=[500 5000];
     end
-    app.min_amt.Value = fpass(1);
-    app.max_amt.Value = fpass(2);
 
-    app.drta_handles.p.lfp.minLFP=fpass(1);
-    app.drta_handles.p.lfp.maxLFP=fpass(2);
-    
+
     %filtering the data
     if app.drta_handles.p.whichPlot ~= 1
+        app.min_amt.Value = fpass(1);
+        app.max_amt.Value = fpass(2);
+
+        app.drta_handles.p.lfp.minLFP=fpass(1);
+        app.drta_handles.p.lfp.maxLFP=fpass(2);
         bpFilt = designfilt('bandpassiir','FilterOrder',6, ...
             'HalfPowerFrequency1',fpass(1),'HalfPowerFrequency2',fpass(2), ...
             'SampleRate',floor(app.drta_handles.draq_p.ActualRate));
         data1=filtfilt(bpFilt,data);
-        
+
         if app.drta_handles.p.whichPlot==11
             %Calculate the moving variance
             data1=movvar(data1,ceil(0.05*app.drta_handles.draq_p.ActualRate));
@@ -152,114 +153,126 @@ if app.Flags.DataShownAs ~=12
     tagNum = 2;
     SeenNumber = sum(app.drta_handles.p.VisableChannel);
     AllChNames = cell([SeenNumber, 1]);
-    for ii=1:noch
-        
-        if app.drta_handles.p.VisableChannel(ii) == 1
+    for ss = 1:noch
+        if app.drta_handles.p.VisableChannel(ss) == 1
             %{
             Processing the data for each plot and showing each result on a
             single figure            
             %}
             ChannelName = app.SelectChannelsTab.Children.Children.Children(tagNum,1).Tag;
             AllChNames{NumberSeen,1} = ChannelName;
-            app.drta_handles.plot.s_handle.Visible = "on";
+            NumberSeen = NumberSeen + 1;
+        end
+        tagNum = tagNum + 3;
+    end
+    lowestTic = cell([sum(app.drta_handles.p.VisableChannel) 1]);
+    lowTic= cell([sum(app.drta_handles.p.VisableChannel) 1]);
+    higerTic = cell([sum(app.drta_handles.p.VisableChannel) 1]);
+    highestTic = cell([sum(app.drta_handles.p.VisableChannel) 1]);
+    for ik = 1:sum(app.drta_handles.p.VisableChannel)
+        ii = currentChan(ik);
 
-            ii_from=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time)...
-                *app.drta_handles.draq_p.ActualRate+1);
-            ii_to=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time...
-                +app.drta_handles.p.display_interval)*app.drta_handles.draq_p.ActualRate);
+        app.drta_handles.plot.s_handle.Visible = "on";
 
-            sz_dat=length(data1);
-            tim=[0 sz_dat];
-            
-            %Calculate 2.5 SD
-            %Now plot 3xmedian(std)
-            datavec=data1(:,ii);
-            
-            sdvec=zeros(1,ceil(length(datavec)/1000));
-            
-            jj=0;
-            for kk=1:1000:length(datavec)-1000
-                jj=jj+1;
-                sdvec(jj)=std(datavec(kk:kk+1000));
-            end
-            
-            %Set threshold to 2.5 or -2.5 xSD
-            two_half_med_SD=2.5*median(sdvec);
-            
-            %If this is zero this is the differentially subtracted
-            %channel, set 2.5SD high
-            if two_half_med_SD==0
-                two_half_med_SD=100;
-            end
-            
-            if app.drta_handles.p.set2p5SD==1
-                app.drta_handles.p.threshold(ii)=two_half_med_SD;
-            end
-            if app.drta_handles.p.setm2p5SD==1
-                app.drta_handles.p.threshold(ii)=-two_half_med_SD;
-            end
-            
-            %Set threshold to nxSD
-            nxSD=app.drta_handles.p.nxSD*median(sdvec);
-            
-            %If nxSD=0 this is the differentially subtracted channel
-            if nxSD==0
-                nxSD=1000;
-                app.drta_handles.p.threshold(ii)=nxSD;
-            end
-            
-            if app.drta_handles.p.setnxSD==1
-                app.drta_handles.p.threshold(ii)=nxSD;
-            end
-            
-            %Set threshold to uv
-            if app.drta_handles.p.setThr==1
-                app.drta_handles.p.threshold(ii)=app.drta_handles.p.thrToSet;
-            end
-            %{
+        ii_from=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time)...
+            *app.drta_handles.draq_p.ActualRate+1);
+        ii_to=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time...
+            +app.drta_handles.p.display_interval)*app.drta_handles.draq_p.ActualRate);
+
+        sz_dat=length(data1);
+        tim=[0 sz_dat];
+
+        %Calculate 2.5 SD
+        %Now plot 3xmedian(std)
+        datavec=data1(:,ii);
+
+        sdvec=zeros(1,ceil(length(datavec)/1000));
+
+        jj=0;
+        for kk=1:1000:length(datavec)-1000
+            jj=jj+1;
+            sdvec(jj)=std(datavec(kk:kk+1000));
+        end
+
+        %Set threshold to 2.5 or -2.5 xSD
+        two_half_med_SD=2.5*median(sdvec);
+
+        %If this is zero this is the differentially subtracted
+        %channel, set 2.5SD high
+        if two_half_med_SD==0
+            two_half_med_SD=100;
+        end
+
+        if app.drta_handles.p.set2p5SD==1
+            app.drta_handles.p.threshold(ii)=two_half_med_SD;
+        end
+        if app.drta_handles.p.setm2p5SD==1
+            app.drta_handles.p.threshold(ii)=-two_half_med_SD;
+        end
+
+        %Set threshold to nxSD
+        nxSD=app.drta_handles.p.nxSD*median(sdvec);
+
+        %If nxSD=0 this is the differentially subtracted channel
+        if nxSD==0
+            nxSD=1000;
+            app.drta_handles.p.threshold(ii)=nxSD;
+        end
+
+        if app.drta_handles.p.setnxSD==1
+            app.drta_handles.p.threshold(ii)=nxSD;
+        end
+
+        %Set threshold to uv
+        if app.drta_handles.p.setThr==1
+            app.drta_handles.p.threshold(ii)=app.drta_handles.p.thrToSet;
+        end
+        %{
             Setting up the data into a matrix where each channel is
             normalized to be between two set points for stacking all of the
             channels onto one plot
-            %}
+        %}
         % ***********************
         % the code below needs to be checked in reference to line 270
         % drtaPlotBrowseTraces also need to add the else part of the file
         % *****************
-            rangespace = rangespace + 1.3;
-            %stacking the data
-            for oy = 1:size(data1(ii_from:ii_to,ii),1)
-                if data1(ii_from+oy-1,ii) >= app.drta_handles.draq_p.prev_ylim(1)
-                    MaxedData(oy,1) = app.drta_handles.draq_p.prev_ylim(1);
-                elseif data1(ii_from+oy-1,ii) <= -app.drta_handles.draq_p.prev_ylim(1)
-                    MaxedData(oy,1) = -app.drta_handles.draq_p.prev_ylim(1);
-                else
-                    MaxedData(oy,1) = data1(ii_from+oy-1,ii);
-                end
-            end
-            NeededNormed = [...
-                    -app.drta_handles.draq_p.prev_ylim(1); ...
-                    app.drta_handles.draq_p.prev_ylim(1); ...
-                    (floor(-2*app.drta_handles.draq_p.prev_ylim(1)/3)); ...
-                    (floor(2*app.drta_handles.draq_p.prev_ylim(1)/3)); ...
-                    MaxedData];
-            if SeenNumber > 1
-
-                dataNorm = normalize(NeededNormed ,"range",[(rangespace) (rangespace+1)]);
-                CombinedDataSets(:,NumberSeen) = dataNorm(5:end);
-                Wlimit(:,NumberSeen) = dataNorm(1:2);
-                Mlimit(:,NumberSeen) = dataNorm(3:4);
-                yPlace(NumberSeen) = rangespace-.15; 
-                NumberSeen = NumberSeen + 1;
+        rangespace = rangespace + 1.3;
+        %stacking the data
+        for oy = 1:size(data1(ii_from:ii_to,ii),1)
+            if data1(ii_from+oy-1,ii) >= app.drta_handles.draq_p.prev_ylim(ii)
+                MaxedData(oy,1) = app.drta_handles.draq_p.prev_ylim(ii);
+            elseif data1(ii_from+oy-1,ii) <= -app.drta_handles.draq_p.prev_ylim(ii)
+                MaxedData(oy,1) = -app.drta_handles.draq_p.prev_ylim(ii);
             else
-                CombinedDataSets = NeededNormed;
+                MaxedData(oy,1) = data1(ii_from+oy-1,ii);
             end
         end
-        tagNum = tagNum + 3;
+        NeededNormed = [...
+            -app.drta_handles.draq_p.prev_ylim(ii); ...
+            app.drta_handles.draq_p.prev_ylim(ii); ...
+            (floor(-2*app.drta_handles.draq_p.prev_ylim(ii)/3)); ...
+            (floor(2*app.drta_handles.draq_p.prev_ylim(ii)/3)); ...
+            MaxedData];
+        % if ik > 1
+            lowestTic{ik} = num2str(-app.drta_handles.draq_p.prev_ylim(ii));
+            lowTic{ik} = num2str(floor(-2*app.drta_handles.draq_p.prev_ylim(ii)/3));
+            higerTic{ik} = num2str(floor(2*app.drta_handles.draq_p.prev_ylim(ii)/3));
+            highestTic{ik} = num2str(app.drta_handles.draq_p.prev_ylim(ii));
+            dataNorm = normalize(NeededNormed ,"range",[(rangespace) (rangespace+1)]);
+            CombinedDataSets(:,ik) = dataNorm(5:end);
+            Wlimit(:,ik) = dataNorm(1:2);
+            Mlimit(:,ik) = dataNorm(3:4);
+            yPlace(ik) = rangespace-.15;
+
+        % else
+        %     CombinedDataSets = NeededNormed;
+        % end
+
     end
     %happends independent of the number of channels shown Plot_figureGrid
 
     cla(app.figurePlot_UIAxes);
-    app.figurePlot_UIAxes.Layout.Row = [1 (SeenNumber)];
+    app.figurePlot_UIAxes.Layout.Row = [1 (ik)];
     app.figurePlot_UIAxes.Layout.Column = 1;
     app.figurePlot_UIAxes.XTickLabels = {};
     app.figurePlot_UIAxes.YTickLabels = {};
@@ -285,11 +298,34 @@ if app.Flags.DataShownAs ~=12
         ChLables = yPlace+0.65;
         tLabels = [(yPlace+0.15),(yPlace+1.15)];
     else
-        ylim(PlotSpace,[-app.drta_handles.draq_p.prev_ylim(1) app.drta_handles.draq_p.prev_ylim(1)])
+        ylim(PlotSpace,[-app.drta_handles.draq_p.prev_ylim(ii) app.drta_handles.draq_p.prev_ylim(ii)])
     end
     xlabel(PlotSpace,'Time (sec)');
-    PlotSpace.YTick = ChLables;
-    PlotSpace.YTickLabel = AllChNames;
+    if sum(app.drta_handles.p.VisableChannel) < 11
+        combinedTicks = sort([Mlimit(1,:),Mlimit(2,:),ChLables(1,:),tLabels(1,:)],'ascend');
+    else
+        combinedTicks = sort([Mlimit(1,:),Mlimit(2,:),ChLables(1,:)],'ascend');
+    end
+    PlotSpace.YTick = combinedTicks;
+    nameplace = 1;
+    allTickLabels = cell([size(combinedTicks,2) 1]);
+    for ss = 1:size(AllChNames,1)
+        allTickLabels(nameplace) = lowestTic(ss);
+        nameplace = nameplace + 1;
+        if sum(app.drta_handles.p.VisableChannel) < 11
+            allTickLabels(nameplace) = lowTic(ss);
+            nameplace = nameplace + 1;
+        end
+        allTickLabels(nameplace) = AllChNames(ss);
+        nameplace = nameplace + 1;
+        if sum(app.drta_handles.p.VisableChannel) < 11
+            allTickLabels(nameplace) = higerTic(ss);
+            nameplace = nameplace + 1;
+        end
+        allTickLabels(nameplace) = highestTic(ss);
+        nameplace = nameplace + 1;
+    end
+    PlotSpace.YTickLabel = allTickLabels;
     PlotSpace.FontSize = 18;
     %placing all the x-lines
     if exist("odor_on","var") ~= 0 && ...
@@ -297,8 +333,8 @@ if app.Flags.DataShownAs ~=12
         xline(PlotSpace,odor_on,"LineWidth",0.8,"Color","black")
         xline(PlotSpace,odor_on,"LineWidth",12,"Alpha",0.3,"Color","red")
     end
-    
-    
+
+
     dt=app.drta_handles.p.display_interval/5;
     dt=round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
     d_samples=dt*app.drta_handles.draq_p.ActualRate;
