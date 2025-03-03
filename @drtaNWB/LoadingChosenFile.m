@@ -31,8 +31,6 @@ app.OutputText = [append("Loading: ",app.drta_handles.p.FileName)];
 ReadoutUpdate(app,[append("Protocol: ",protocolPick)]);
 if strcmp(app.drta_handles.p.FileName(end-2:end),'rhd')
     open_rhd_Callback(app);
-elseif strcmp(app.drta_handles.p.FileName(end-2:end),'.dg')
-    drtaOpenDG_Callback(app);
 elseif strcmp(app.drta_handles.p.FileName(end-2:end),'edf')
     open_edf_Callback(app);
 end
