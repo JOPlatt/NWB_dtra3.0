@@ -5,7 +5,11 @@ This function is used to control what is plotted on each figure
 ChPlace = 2;
 for nk = 1: app.drta_handles.draq_p.no_chans
     ChannelValues(nk) = app.Channels_GridLayout.Children(ChPlace).Value;
-    ChPlace = ChPlace + 3;
+    if nk <=16
+        ChPlace = ChPlace + 3;
+    else
+        ChPlace = ChPlace + 2;
+    end
 
 end
 %setting inital channel values
@@ -13,10 +17,6 @@ app.drta_handles.p.VisableChannel = ChannelValues;
 noch = size(app.drta_handles.p.VisableChannel,2);
 
 currentChan = find(app.drta_handles.p.VisableChannel == 1);
-
-
-
-
 
 %pulling in relevant information about what needs to be plotted
 data = drtaNWB_GetTraceData(app.drta_handles);
@@ -131,17 +131,19 @@ if app.Flags.DataShownAs ~=12
     Adjusting changels for ????????????
     ---------------------------------------------------------
     %}
-    if (app.drta_handles.p.doSubtract==1)
+    if any(app.drta_Main.ChDiffChoice ~= 0)
         data2=data1;
         for tetr=1:4
             for jj=1:4
-                if str2double(app.drta_handles.p.subtractCh{4*(tetr-1)+jj}{:,:})<=16
+                ChShown = app.drta_handles.p.VisableChannel((tetr-1)*4+jj);
+                DiffChoice = app.drta_Main.ChDiffChoice((tetr-1)*4+jj);
+                if ChShown == 1 && DiffChoice >= 3
                     %Subtract one of the channels
-                    data1(:,(tetr-1)*4+jj)=data2(:,(tetr-1)*4+jj)-data2(:,str2double(app.drta_handles.p.subtractCh{(tetr-1)*4+jj}{:,:}));
-                elseif str2double(app.drta_handles.p.subtractCh{4*(tetr-1)+jj}{:,:})==17
+                    data1(:,(tetr-1)*4+jj)=data2(:,(tetr-1)*4+jj)-data2(:,app.drta_Main.ChDiffChoice((tetr-1)*4+jj)-3);
+                elseif ChShown == 1 && DiffChoice == 1
                     %Subtract tetrode mean
                     data1(:,(tetr-1)*4+jj)=data2(:,(tetr-1)*4+jj)-mean(data2(:,(tetr-1)*4+1:(tetr-1)*4+4),2);
-                elseif str2double(app.drta_handles.p.subtractCh{4*(tetr-1)+jj}{:,:})==18
+                elseif ChShown == 1 && DiffChoice == 2
                     %Subtract average of all electrodes
                     data1(:,(tetr-1)*4+jj)=data2(:,(tetr-1)*4+jj)-mean(data2,2);
                 end

@@ -124,105 +124,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         TrialNumChange(app,event) % changes the trial number
         LFPplotChange(app,event) % handles user input changes for LFP plot
         SaveFile(app) % saving output
-
-
-        %         function drtaBrowseDraPush_Callback(app, handles)
-        %
-        %             h=drtaBrowseTraces;
-        %             handles.w.drtaBrowseTraces=h;
-        %             % Update handles structure
-        %             guidata(hObject, handles);
-        %             % Update handles structure here and elsewhere
-        %             drtaUpdateAllHandlespw(app, handles);
-        %             drtaBrowseTraces('updateHandles',h,eventdata,handles);
-        %             drtaBrowseTraces('updateBrowseTraces',h);
-        %         end
-
-        %         function drtaThresholdPush_Callback(app, handles)
-        %
-        %             h=drtaThresholdSnips;
-        %             handles.w.drtaThresholdSnips=h;
-        %             %handles.p.trialNo=1;
-        %             % Update handles structure here and elsewhere
-        %             drtaUpdateAllHandlespw(app, handles);
-        %             drtaThresholdSnips('updateHandles',h,eventdata,handles);
-        %         end
-
-        %         function trialNo = getTrialNo(~, handles)
-        %
-        %             trialNo=handles.p.trialNo;
-        %         end
-        %
-        %         function actualTrialNo = setTrialNo(app, trialNo)
-        %             % hObject    handle to drtaBrowseDraPush (see GCBO)
-        %             % eventdata  reserved - to be defined in a future version of MATLAB
-        %             % handles    structure with handles and user data (see GUIDATA)
-        %
-        %             handles=guidata(hObject);
-        %
-        %             sztrials=size(handles.draq_d.t_trial);
-        %             actualTrialNo=trialNo;
-        %             if (trialNo<1)
-        %                 actualTrialNo=1;
-        %                 handles.p.trialNo=1;
-        %             end
-        %
-        %             if (trialNo>sztrials(2))
-        %                 actualTrialNo=sztrials(2);
-        %                 handles.p.trialNo=sztrials(2);
-        %             end
-        %
-        %             if (trialNo>=1)&&(trialNo<=sztrials(2))
-        %                 actualTrialNo=trialNo;
-        %                 handles.p.trialNo=trialNo;
-        %             end
-        %
-        %             % Update handles structure
-        %             guidata(hObject, handles);
-        %         end
-
-
-
-        %         function drtaUpdateAllHandlespw(app,newhandles)
-        %             % hObject    handle to drtaBrowseDraPush (see GCBO)
-        %             % eventdata  reserved - to be defined in a future version of MATLAB
-        %             % handles    structure with handles and user data (see GUIDATA)
-        %
-        %             handles=app.drta_handles;
-        %             handles.p=newhandles.p;
-        %             handles.draq_p=newhandles.draq_p;
-        %             % Update handles structure
-        %             app.drta_handles = handles;
-        %
-        %             if handles.w.drtaBrowseTraces~=0
-        %                 hObject=handles.w.drtaBrowseTraces;
-        % %                 handles=guidata(hObject);
-        %                 handles.p=newhandles.p;
-        %                 handles.w=newhandles.w;
-        %                 handles.draq_p=newhandles.draq_p;
-        %                 % Update the handles structure
-        % %                 guidata(hObject, handles);
-        %                 %drtaBrowseTraces('updateBrowseTraces',hObject);
-        %             end
-        %
-        % %             handles=guidata(gcbo);
-        %             if handles.w.drtaThresholdSnips~=0
-        %                 hObject=handles.w.drtaThresholdSnips;
-        % %                 handles=guidata(hObject);
-        %                 handles.p=newhandles.p;
-        %                 handles.w=newhandles.w;
-        %                 handles.draq_p=newhandles.draq_p;
-        %                 % Update the handles structure
-        % %                 guidata(hObject, handles);
-        % %                 drtaThresholdSnips('drtaThSnSetTrials',hObject,handles);
-        %                 %drtaThresholdSnips('drtaThresholdAndPlot',hObject,handles);
-        %             end
-
-        %             app.drta_handles = handles;
-        %         end
-        
-
-
+        drta03_GenerateMClust(app) % runs MClust and saves output
+        ShowingDiffCheckbox(app) % creates the structure for dropdown obj
 
 
         function setTrialsOutcome(app, trialsOutcome)
@@ -249,73 +152,6 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         end
     end
 
-    methods (Access = private)
-
-
-        % function figChange(app)
-        %     %{
-        %     This function is used to adjsut the figured displayed based on
-        %     the user selections from the dropdown menus
-        %     %}
-        %     clf(app.drta_handles.s_handle,"reset")
-        %     clear app.drta_handles.s_handle
-        %     PSel = [32,34;30,32;28,30;26,28; ...
-        %         24,26;22,24;20,22;18,20; ...
-        %         16,18;14,16;12,14;10,12; ...
-        %         8,10;6,8;4,6;2,4];
-        %     %             Wct = 1;
-        % 
-        %     for ii = 1:16
-        % 
-        %         if app.drta_handles.p.subtractCH{1,ii}{:} == "Tet"
-        %             app.drta_handles.p.subtractCh{1,ii}{:} = 17;
-        %         elseif app.drta_handles.p.subtractCH{1,ii}{:} == "Avg"
-        %             app.drta_handles.p.subtractCh{1,ii}{:} = 18;
-        %         elseif app.drta_handles.p.subtractCH{1,ii}{:} == "No"
-        %             app.drta_handles.p.subtractCh{1,ii}{:} = 19;
-        %         else
-        % 
-        %         end
-        %         if ii < 16
-        %             SameAsNext = app.drta_handles.p.subtractCh{1,ii}{:} == app.drta_handles.p.subtractCh{1,ii+1}{:};
-        %         elseif ii == 16
-        %             SameAsNext = app.drta_handles.p.subtractCh{1,ii}{:} == app.drta_handles.p.subtractCh{1,ii-1}{:};
-        %         end
-        %         if SameAsNext == ture
-        %             if ~isempty(stPlc)
-        %                 stPlc = ii;
-        %             end
-        %         else
-        %             if ~isempty(stPlc)
-        %                 stPlc = ii;
-        %             end
-        %             app.drta_handles.plot.s_handle(ii) = uiaxes(drta_ax);
-        %             app.drta_handles.plot.s_handle(ii).Layout.Row = [stPlc PSel(ii,2)];
-        %             app.drta_handles.plot.s_handle(ii).Layout.Column = [2 9];
-        %             app.drta_handles.plot.s_handle(ii).XTickLabels = {};
-        %             app.drta_handles.plot.s_handle(ii).YTickLabels = {};
-        %             app.drta_handles.plot.s_handle(ii).Title.Visible = "off";
-        %             app.drta_handles.plot.s_handle(ii).Box = 'on';
-        %             currentInner = app.drta_handles.plot.s_handle(ii).InnerPosition;
-        %             if ii == 1
-        %                 % lowermost plot is taller due to x-tic labels
-        %                 app.drta_handles.plot.s_handle(ii).InnerPosition = [currentInner(1), currentInner(2)+10, ...
-        %                     currentInner(3), 40];
-        %             else
-        %                 app.drta_handles.plot.s_handle(ii).InnerPosition = [currentInner(1), currentInner(2)+3, ...
-        %                     currentInner(3), 38];
-        %             end
-        %         end
-        %         stPlc = [];
-        % 
-        % 
-        % 
-        %     end
-        %     drtaGenerateEvents(app.drta_handles)
-        % end
-
-
-    end
         
         
 
@@ -423,6 +259,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
         % Value changed function: MClust_Button
         function MClust_ButtonValueChanged(app, event)
+            app.MClust_Button.Enable = "off";
             drtaGenerateMClust(app.drta_handles);
         end
 
@@ -540,12 +377,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
         % Value changed function: Diff_CheckBox
         function Diff_CheckBoxValueChanged(app, event)
-            if app.Diff_CheckBox.Value == 1
-                handles.p.doSubtract=1;
-            else
-                handles.p.doSubtract=0;
-            end
-            VarUpdate(app,"doSubtract",handles.p.doSubtract)
+            ShowingDiffCheckbox(app)
         end
 
         % Button down function: SelectChannelsTab
@@ -587,6 +419,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         % Button pushed function: Savematfile_Button
         function Savematfile_ButtonPushed(app, event)
             SaveFile(app)
+        end
+
+        % Value changed function: Yrange_DropDown
+        function Yrange_DropDownValueChanged(app, event)
+            value = app.Yrange_DropDown.Value;
+            if value ~= "all"
+                app.drta_handles.p.which_channel = str2double(value);
+            end
         end
     end
 
@@ -831,9 +671,9 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create Yrange_DropDown
             app.Yrange_DropDown = uidropdown(app.GridLayoutTraces);
-            app.Yrange_DropDown.Items = {'all', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', 'Digital'};
-            app.Yrange_DropDown.Enable = 'off';
-            app.Yrange_DropDown.Visible = 'off';
+            app.Yrange_DropDown.Items = {'all', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16'};
+            app.Yrange_DropDown.ValueChangedFcn = createCallbackFcn(app, @Yrange_DropDownValueChanged, true);
+            app.Yrange_DropDown.FontName = 'Times New Roman';
             app.Yrange_DropDown.Layout.Row = 25;
             app.Yrange_DropDown.Layout.Column = [12 13];
             app.Yrange_DropDown.Value = 'all';
@@ -848,8 +688,6 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create MClust_Button
             app.MClust_Button = uibutton(app.GridLayoutTraces, 'state');
             app.MClust_Button.ValueChangedFcn = createCallbackFcn(app, @MClust_ButtonValueChanged, true);
-            app.MClust_Button.Enable = 'off';
-            app.MClust_Button.Visible = 'off';
             app.MClust_Button.Text = 'MClust';
             app.MClust_Button.Layout.Row = 3;
             app.MClust_Button.Layout.Column = 10;
