@@ -46,28 +46,21 @@ try
 
     %determining the outcome
     if sum(shiftdata30==8)>0.05*app.drta_handles.draq_p.ActualRate
-        FigTitle_TrialsOutcome(app.drta_handles.w.drta,'Hit')
-
+        app.TrialOutcome.Text = 'Hit';
     elseif sum(shiftdata30==10)>0.05*app.drta_handles.draq_p.ActualRate
-        FigTitle_TrialsOutcome(app.drta_handles.w.drta,'Miss')
-
+        app.TrialOutcome.Text = 'Miss';
     elseif sum(shiftdata30==12)>0.05*app.drta_handles.draq_p.ActualRate
-        FigTitle_TrialsOutcome(app.drta_handles.w.drta,'CR')
-
+        app.TrialOutcome.Text = 'CR';
     elseif sum(shiftdata30==14)>0.05*app.drta_handles.draq_p.ActualRate
-        FigTitle_TrialsOutcome(app.drta_handles.w.drta,'FA')
-
-    elseif (length(find(shiftdata30>=1,1,'first'))==1) && ...
+        app.TrialOutcome.Text = 'FA';
+    elseif isscalar(find(shiftdata30>=1,1,'first')) && ...
             (length(find(shiftdata30==8,1,'first'))~=1) && ...
             (length(find(shiftdata30==10,1,'first'))~=1) && ...
             (length(find(shiftdata30==12,1,'first'))~=1) && ...
             (length(find(shiftdata30>0))>app.drta_handles.draq_p.ActualRate*0.75)
-        FigTitle_TrialsOutcome(app.drta_handles.w.drta,'Short')
-
+        app.TrialOutcome.Text = 'Short';
     else
-        FigTitle_TrialsOutcome(app.drta_handles.w.drta,'Inter')
-
-
+        app.TrialOutcome.Text = 'Inter';
     end
 catch
 end
