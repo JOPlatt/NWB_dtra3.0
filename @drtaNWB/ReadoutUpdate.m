@@ -1,4 +1,7 @@
 function ReadoutUpdate(app,textUpdate)
+%{
+This function adds to the output display
+%}
 OTsize = length(app.OutputText);
 Text_size = length(textUpdate);
 if Text_size == 1
