@@ -25,6 +25,10 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         SelectFile_Button           matlab.ui.control.StateButton
         Browse_TracesTab            matlab.ui.container.Tab
         GridLayoutTraces            matlab.ui.container.GridLayout
+        ShiftDropcBitand_EditField  matlab.ui.control.NumericEditField
+        DataShiftBitand_EditField   matlab.ui.control.NumericEditField
+        Shift_dropc_Bitand_Label    matlab.ui.control.Label
+        Data_Shift_Bitand_Label     matlab.ui.control.Label
         UpdateLFPPlot_Button        matlab.ui.control.Button
         ExtraFigureOptions_Button   matlab.ui.control.StateButton
         Plot_Panel                  matlab.ui.container.Panel
@@ -378,17 +382,6 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         % Value changed function: Diff_CheckBox
         function Diff_CheckBoxValueChanged(app, event)
             ShowingDiffCheckbox(app)
-        end
-
-        % Button down function: SelectChannelsTab
-        function SelectChannelsTabButtonDown(app, event)
-            %{
-            This function is used to choose the channels being shown in the
-            figure shown in the browse traces tab
-            Default is the first 16 channels
-            %}
-
-
         end
 
         % Callback function: Browse_TracesTab, UpdateLFPPlot_Button
@@ -746,6 +739,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create thr_amt
             app.thr_amt = uieditfield(app.GridLayoutTraces, 'numeric');
             app.thr_amt.Tag = 'Thr';
+            app.thr_amt.HorizontalAlignment = 'center';
             app.thr_amt.Layout.Row = 13;
             app.thr_amt.Layout.Column = 11;
 
@@ -806,11 +800,38 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.UpdateLFPPlot_Button.Layout.Column = [12 13];
             app.UpdateLFPPlot_Button.Text = 'Update LFP Plot';
 
+            % Create Data_Shift_Bitand_Label
+            app.Data_Shift_Bitand_Label = uilabel(app.GridLayoutTraces);
+            app.Data_Shift_Bitand_Label.HorizontalAlignment = 'center';
+            app.Data_Shift_Bitand_Label.FontName = 'Times New Roman';
+            app.Data_Shift_Bitand_Label.Layout.Row = 19;
+            app.Data_Shift_Bitand_Label.Layout.Column = [10 11];
+            app.Data_Shift_Bitand_Label.Text = 'Data_Shift_Bitand';
+
+            % Create Shift_dropc_Bitand_Label
+            app.Shift_dropc_Bitand_Label = uilabel(app.GridLayoutTraces);
+            app.Shift_dropc_Bitand_Label.HorizontalAlignment = 'center';
+            app.Shift_dropc_Bitand_Label.FontName = 'Times New Roman';
+            app.Shift_dropc_Bitand_Label.Layout.Row = 21;
+            app.Shift_dropc_Bitand_Label.Layout.Column = [10 11];
+            app.Shift_dropc_Bitand_Label.Text = 'Shift_dropc_Bitand';
+
+            % Create DataShiftBitand_EditField
+            app.DataShiftBitand_EditField = uieditfield(app.GridLayoutTraces, 'numeric');
+            app.DataShiftBitand_EditField.HorizontalAlignment = 'center';
+            app.DataShiftBitand_EditField.Layout.Row = 19;
+            app.DataShiftBitand_EditField.Layout.Column = 12;
+
+            % Create ShiftDropcBitand_EditField
+            app.ShiftDropcBitand_EditField = uieditfield(app.GridLayoutTraces, 'numeric');
+            app.ShiftDropcBitand_EditField.HorizontalAlignment = 'center';
+            app.ShiftDropcBitand_EditField.Layout.Row = 21;
+            app.ShiftDropcBitand_EditField.Layout.Column = 12;
+
             % Create SelectChannelsTab
             app.SelectChannelsTab = uitab(app.TabGroup);
             app.SelectChannelsTab.AutoResizeChildren = 'off';
             app.SelectChannelsTab.Title = 'Select Channels';
-            app.SelectChannelsTab.ButtonDownFcn = createCallbackFcn(app, @SelectChannelsTabButtonDown, true);
             app.SelectChannelsTab.Scrollable = 'on';
 
             % Create ChannelPanel
@@ -959,8 +980,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.UpdateDigitPlots_Button = uibutton(app.DigitalControls_Grid, 'push');
             app.UpdateDigitPlots_Button.ButtonPushedFcn = createCallbackFcn(app, @UpdateDigitPlots_ButtonPushed, true);
             app.UpdateDigitPlots_Button.FontName = 'Times New Roman';
-            app.UpdateDigitPlots_Button.Layout.Row = 12;
-            app.UpdateDigitPlots_Button.Layout.Column = 1;
+            app.UpdateDigitPlots_Button.Layout.Row = 14;
+            app.UpdateDigitPlots_Button.Layout.Column = [1 2];
             app.UpdateDigitPlots_Button.Text = 'Update Digital Plots';
 
             % Create Shiftdropcbitand_Label
@@ -988,7 +1009,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create ShiftDataBitand_EditField
             app.ShiftDataBitand_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
             app.ShiftDataBitand_EditField.HorizontalAlignment = 'center';
-            app.ShiftDataBitand_EditField.Layout.Row = 8;
+            app.ShiftDataBitand_EditField.Layout.Row = 10;
             app.ShiftDataBitand_EditField.Layout.Column = 2;
 
             % Create Trace_ylimits_Label

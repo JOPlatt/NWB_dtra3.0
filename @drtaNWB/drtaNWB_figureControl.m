@@ -24,8 +24,16 @@ digi = data(:,app.drta_handles.draq_p.no_chans);
 
 %determining the outcome fo the trial being plotted
 try
-    shiftdata30 = bitand(digi,1+2+4+8+16+32);
-    shift_dropc_nsampler = bitand(digi,1+2+4+8+16+32);
+    if DataShiftBitand_EditField.Value == 0
+        shiftdata30 = bitand(digi,1+2+4+8+16+32);
+    else
+        shiftdata30 = bitand(digi,DataShiftBitand_EditField.Value);
+    end
+    if ShiftDropcBitand_EditField.Value == 0
+        shift_dropc_nsampler = bitand(digi,1+2+4+8+16+32);
+    else
+        shift_dropc_nsampler = bitand(ShiftDropcBitand_EditField.Value);
+    end
     %Please note that there are problems with the start of the trial.
     %Because of this we start looking 2 sec and beyond
     shiftdata30(1:app.drta_handles.draq_p.ActualRate*app.drta_handles.p.exclude_secs)=0;
