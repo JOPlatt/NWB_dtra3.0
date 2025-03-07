@@ -81,7 +81,7 @@ switch handles.p.which_c_program
                             exclude_trial(trialNo)=0;
                             dropc_nsamp_odorNo(trialNo)=odorNo;
                             %need to ask about this
-                            if isempty(dropc_nsamp_odors==odorNo)
+                            if ~any(dropc_nsamp_odors==odorNo, "all")
                                 ii_dropc_nsamp_odors=ii_dropc_nsamp_odors+1;
                                 dropc_nsamp_odors(ii_dropc_nsamp_odors)=odorNo;
                             end
