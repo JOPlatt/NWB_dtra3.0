@@ -49,12 +49,15 @@ end
 % Read version number.
 data_file_main_version_number = fread(fid, 1, 'int16');
 data_file_secondary_version_number = fread(fid, 1, 'int16');
-%*****Edit me*********
-fprintf(1, '\n');
-fprintf(1, 'Reading Intan Technologies RHD2000 Data File, Version %d.%d\n', ...
-    data_file_main_version_number, data_file_secondary_version_number);
-fprintf(1, '\n');
-%**************
+
+% fprintf(1, '\n');
+% fprintf(1, 'Reading Intan Technologies RHD2000 Data File, Version %d.%d\n', ...
+%     data_file_main_version_number, data_file_secondary_version_number);
+% fprintf(1, '\n');
+textUpdate = ['Reading Intan Technologies RHD2000 Data File,' ...
+    'Version ' num2str(data_file_main_version_number) '.' ...
+    num2str(data_file_secondary_version_number)];
+ReadoutUpdate(app,textUpdate)
 if (data_file_main_version_number == 1)
     num_samples_per_data_block = 60;
 else
@@ -71,10 +74,12 @@ actual_upper_bandwidth = fread(fid, 1, 'single');
 desired_dsp_cutoff_frequency = fread(fid, 1, 'single');
 desired_lower_bandwidth = fread(fid, 1, 'single');
 desired_upper_bandwidth = fread(fid, 1, 'single');
-%******Edit me**********
-fprintf(1, 'Sample rate = %d\nLower bandwidth = %d\nUpper_bandwidth = %d\n', ...
-    sample_rate, actual_lower_bandwidth,actual_upper_bandwidth);
-%****************
+textUpdate = ['Sample rate = ' num2str(sample_rate)];
+ReadoutUpdate(app,textUpdate)
+textUpdate = ['Lower bandwidth = ' num2str(actual_lower_bandwidth)];
+ReadoutUpdate(app,textUpdate)
+textUpdate = ['Upper_bandwidth = ' num2str(actual_upper_bandwidth)]; 
+ReadoutUpdate(app,textUpdate)
 % This tells us if a software 50/60 Hz notch filter was enabled during
 % the data acquisition.
 notch_filter_mode = fread(fid, 1, 'int16');
@@ -416,9 +421,8 @@ if (data_present)
 
         fraction_done = 100 * (i / num_data_blocks);
         if (fraction_done >= percent_done)
-            %***********Edit me ***********
-            fprintf(1, '%d%% done...\n', percent_done);
-            %**************
+            textUpdate =  [num2str(percent_done) '% done...'];
+            ReadoutUpdate(app,textUpdate)
             percent_done = percent_done + print_increment;
         end
     end
@@ -435,9 +439,8 @@ end
 fclose(fid);
 
 if (data_present)
-    %****Edit me ***********
-    fprintf(1, 'Parsing data...\n');
-    %**************
+    textUpdate = 'Parsing data...';
+    ReadoutUpdate(app,textUpdate)
     switch which_protocol
         case {1,3,5,6,7,8,9}
             % Extract digital input channels to separate variables.
@@ -472,10 +475,11 @@ if (data_present)
     num_gaps = sum(diff(t_amplifier) ~= 1);
     %********Edit me*********
     if (num_gaps == 0)
-        fprintf(1, 'No missing timestamps in data.\n');
+        textUpdate = 'No missing timestamps in data.';
+        ReadoutUpdate(app,textUpdate)
     else
-        fprintf(1, 'Warning: %d gaps in timestamp data found.  Time scale will not be uniform!\n', ...
-            num_gaps);
+        textUpdate = ['Warning: ' num2str(num_gaps) ' gaps in timestamp data found.  Time scale will not be uniform!']; 
+        ReadoutUpdate(app,textUpdate)
     end
     %******************
     % Scale time steps (units = seconds).
@@ -489,9 +493,8 @@ if (data_present)
 
 
 end
-%********Edit me*********
-fprintf(1, 'Finding full trials...\n');
-%************
+textUpdate = 'Finding full trials...';
+ReadoutUpdate(app,textUpdate)
 draq_p.dgordra=3;  %3 is rhd
 draq_p.show_plot=0;
 draq_p.ActualRate=frequency_parameters.board_adc_sample_rate;
@@ -801,9 +804,8 @@ switch which_protocol
         end
         
         full_trials=draq_d.noTrials;
-        %*********Edit me**********
-        fprintf(1, 'Found %d full trials...\n',full_trials);
-        %******************
+        textUpdate = ['Found ' num2str(full_trials) ' full trials...'];
+        ReadoutUpdate(app,textUpdate)
 %         fprintf(1, 'Finding short trials...\n');
 %         
 %         
@@ -931,16 +933,14 @@ switch which_protocol
         end
         
         full_trials=draq_d.noTrials;
-         %***********Edit me***********
-        fprintf(1, 'Found %d full trials...\n',full_trials);
-        %*****************
+        textUpdate = ['Found ' num2str(full_trials) ' full trials...'];
+        ReadoutUpdate(app,textUpdate)
         %Find empty trials
         last_trial=draq_d.noTrials;
         
         trials_to_sort=sortrows(trials_to_sort);
-        %***********Edit me***********
-        fprintf(1, 'Finding inter trials...\n');
-        %*****************
+        textUpdate = 'Finding inter trials...';
+        ReadoutUpdate(app,textUpdate)
         %Empty trial before the first trial
         if trials_to_sort(1,1)>draq_p.sec_per_trigger+draq_p.sec_before_trigger
             draq_d.noTrials=draq_d.noTrials+1;
@@ -968,9 +968,8 @@ switch which_protocol
                 trials_to_sort(draq_d.noTrials,3)=trials_to_sort(draq_d.noTrials,2)+ceil((draq_p.sec_per_trigger*draq_p.ActualRate)/num_samples_per_data_block);
             end
         end
-        %***********Edit me***********
-        fprintf(1, 'Found %d inter trials ...\n',draq_d.noTrials-full_trials);
-         %*****************
+        textUpdate = ['Found ' num2str(draq_d.noTrials-full_trials) ' inter trials ...'];
+        ReadoutUpdate(app,textUpdate)
     case 3
         %dropcnsampler
         %Find the full trials (excluding short trials)
@@ -1013,9 +1012,8 @@ switch which_protocol
         end
         
         full_trials=draq_d.noTrials;
-        %***********Edit me***********
-        fprintf(1, 'Found %d full trials...\n',full_trials);
-        %*******************
+        textUpdate = ['Found ' num2str(full_trials) ' full trials...'];
+        ReadoutUpdate(app,textUpdate)
     case 4
         draq_d.max_laser=max(board_adc_data(1,:));
         draq_d.min_laser=min(board_adc_data(1,:));
@@ -1050,16 +1048,14 @@ switch which_protocol
         end
         
         full_trials=draq_d.noTrials;
-        %***********Edit me***********
-        fprintf(1, 'Found %d full trials...\n',full_trials);
-        %*****************
+        textUpdate = ['Found ' num2str(full_trials) ' full trials...'];
+        ReadoutUpdate(app,textUpdate)
         %Find empty trials
         last_trial=draq_d.noTrials;
         
         trials_to_sort=sortrows(trials_to_sort);
-        %***********Edit me***********
-        fprintf(1, 'Finding inter trials...\n');
-        %*****************
+        textUpdate = 'Finding inter trials...';
+        ReadoutUpdate(app,textUpdate)
         %Empty trial before the first trial
         if trials_to_sort(1,1)>draq_p.sec_per_trigger+draq_p.sec_before_trigger
             draq_d.noTrials=draq_d.noTrials+1;
@@ -1087,9 +1083,8 @@ switch which_protocol
                 trials_to_sort(draq_d.noTrials,3)=trials_to_sort(draq_d.noTrials,2)+ceil((draq_p.sec_per_trigger*draq_p.ActualRate)/num_samples_per_data_block);
             end
         end
-        %***********Edit me***********
-        fprintf(1, 'Found %d inter trials ...\n',draq_d.noTrials-full_trials);
-        %****************
+        textUpdate = ['Found ' num2str(draq_d.noTrials-full_trials) ' inter trials'];
+        ReadoutUpdate(app,textUpdate)
     case 7
         %continuous read
         %Find the full trials (excluding short trials)
@@ -1157,9 +1152,8 @@ switch which_protocol
         end
         
         full_trials=draq_d.noTrials;
-        %***********Edit me***********
-        fprintf(1, 'Found %d full trials...\n',full_trials);
-        %****************
+        textUpdate = ['Found ' num2str(full_trials) ' full trials...'];
+        ReadoutUpdate(app,textUpdate)
 end
 %Sort the trials and assign them to draq_d
 
@@ -1168,8 +1162,8 @@ if ~isempty(digital_input)
 else
     total_length=board_adc_index;
 end
-%***********Edit me***********
-fprintf(1, 'Sorting trials...\n');
+textUpdate = 'Sorting trials...';
+ReadoutUpdate(app,textUpdate)
 sorted_trials=sortrows(trials_to_sort);
   
 if sorted_trials(1,2)<1
@@ -1185,8 +1179,8 @@ end
 
 draq_d.t_end=draq_d.t_trial(end)+draq_p.sec_per_trigger;
 draq_d.total_length=total_length;
-%***********Edit me***********
-fprintf(1, 'Done reading rhd header...\n');
+textUpdate = 'Done reading rhd header...';
+ReadoutUpdate(app,textUpdate)
 varargout{1}  = draq_p;
 varargout{2} = draq_d;
 return

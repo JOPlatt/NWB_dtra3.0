@@ -34,6 +34,10 @@ if strcmp(app.drta_handles.p.FileName(end-2:end),'rhd')
 elseif strcmp(app.drta_handles.p.FileName(end-2:end),'edf')
     open_edf_Callback(app);
 end
+textUpdate = 'Creating Channel Options';
+ReadoutUpdate(app,textUpdate)
 ElectrodCheckboxCreate(app)
+textUpdate = 'Done, Data is ready to be viewed';
+ReadoutUpdate(app,textUpdate)
 app.Flags.fileLoaded = true;
 
