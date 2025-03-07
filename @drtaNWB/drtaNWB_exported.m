@@ -25,6 +25,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         SelectFile_Button           matlab.ui.control.StateButton
         Browse_TracesTab            matlab.ui.container.Tab
         GridLayoutTraces            matlab.ui.container.GridLayout
+        StatusLFP_TextArea          matlab.ui.control.TextArea
         ShiftDropcBitand_EditField  matlab.ui.control.NumericEditField
         DataShiftBitand_EditField   matlab.ui.control.NumericEditField
         Shift_dropc_Bitand_Label    matlab.ui.control.Label
@@ -97,6 +98,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         drta_handles = struct(); % Description
         drta_Plot % Description
         OutputText % This is the text that is displayed on the GUI
+        LFPOutputText = string(); % text that gives status updates for the LFP plots
         FlagAlpha %  Flag is used to indicate the first call to readout
         %         outputTextDisplay % Houses the text for the files that are created
         NWBFileName     % File name that will be used for the NWB file
@@ -130,30 +132,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         SaveFile(app) % saving output
         drta03_GenerateMClust(app) % runs MClust and saves output
         ShowingDiffCheckbox(app) % creates the structure for dropdown obj
-
-
-        function setTrialsOutcome(app, trialsOutcome)
-            app.TrialOutcome.Text = trialsOutcome;
-        end
-
-
-
-
-
-
-        
-
-        function trialNo = getTrialNo(app)
-            trialNo=app.drta_handles.p.trialNo;
-        end
-
-        
-
-
-
-        function FigTitle_TrialsOutcome(app,mouse_results)
-            app.TrialOutcome.Text = mouse_results;
-        end
+        LFPplotStatusUpdate(app,textUpdate) % status updates for LFP plots
     end
 
         
@@ -170,10 +149,10 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             used. The batch file strucutre is started along with
             determining which mode is being requested.
             %}
-            pyenv("ExecutionMode","OutOfProcess")
-            app.BatchFiles.table = table('size',[50,1],'VariableTypes',"cell");
-            app.BatchFiles.amt = 0;
-            app.BatchFiles.totCount = 0;
+            % pyenv("ExecutionMode","OutOfProcess")
+            % app.BatchFiles.table = table('size',[50,1],'VariableTypes',"cell");
+            % app.BatchFiles.amt = 0;
+            % app.BatchFiles.totCount = 0;
             %{
             Flags for setting different conditions
             %}
@@ -256,15 +235,25 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         % ...and 2 other components
         function TrialNum_ButtonPushed(app, event)
             TrialNumChange(app,event)
+            textUpdate = ['Updating plot to show tiral ' ...
+                num2str(app.TrialNoDigit_EditField.Value)];
+            LFPplotStatusUpdate(app,textUpdate)
             VisualChoice(app);
             drtaNWB_figureControl(app);
             drta03_ShowDigital(app);
+            textUpdate = ['Plot updated, now showing tiral ' ...
+                num2str(app.TrialNoDigit_EditField.Value)];
+            LFPplotStatusUpdate(app,textUpdate)
         end
 
         % Value changed function: MClust_Button
         function MClust_ButtonValueChanged(app, event)
+            textUpdate = "Generating MClust files, Please wait.";
+            LFPplotStatusUpdate(app,textUpdate)
             app.MClust_Button.Enable = "off";
             drtaGenerateMClust(app.drta_handles);
+            textUpdate = "MClust files saved";
+            LFPplotStatusUpdate(app,textUpdate)
         end
 
         % Value changed function: Licks_CheckBox
@@ -386,11 +375,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
         % Callback function: Browse_TracesTab, UpdateLFPPlot_Button
         function Browse_TracesTabButtonDown(app, event)
-            
+            textUpdate = "Updating Plot, Please wait.";
+            LFPplotStatusUpdate(app,textUpdate)
             if app.Flags.fileLoaded == true
                 VisualChoice(app);
                 drtaNWB_figureControl(app);
             end
+            textUpdate = "Plot Updated";
+            LFPplotStatusUpdate(app,textUpdate)
         end
 
         % Value changed function: ExtraFigureOptions_Button
@@ -398,20 +390,20 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             if app.ExtraFigureOptions_Button.Value == 1
                 app.ExtraFigureOptions_Button.Enable = "off";
                 ExtraFigOptions(app);
-
             end
             
         end
 
         % Callback function: Digital_Traces_Tab, UpdateDigitPlots_Button
         function UpdateDigitPlots_ButtonPushed(app, event)
-            
             drta03_ShowDigital(app);
         end
 
         % Button pushed function: Savematfile_Button
         function Savematfile_ButtonPushed(app, event)
+            ReadoutUpdate(app,'Saving jt_times file.')
             SaveFile(app)
+            ReadoutUpdate(app,'File saved.')
         end
 
         % Value changed function: Yrange_DropDown
@@ -451,7 +443,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create SelectFile_Button
             app.SelectFile_Button = uibutton(app.GridLayoutLoad, 'state');
             app.SelectFile_Button.ValueChangedFcn = createCallbackFcn(app, @SelectFile_ButtonValueChanged, true);
-            app.SelectFile_Button.Text = 'Choose File (.rhd or .dg)';
+            app.SelectFile_Button.Text = 'Choose File (.rhd or .edf)';
             app.SelectFile_Button.Layout.Row = 4;
             app.SelectFile_Button.Layout.Column = [2 4];
 
@@ -583,7 +575,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create GridLayoutTraces
             app.GridLayoutTraces = uigridlayout(app.Browse_TracesTab);
             app.GridLayoutTraces.ColumnWidth = {79, 38, '1.95x', 82, '1x', 84, 66, 85, '1x', 84, 50, 50, 50};
-            app.GridLayoutTraces.RowHeight = {10, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, '1x'};
+            app.GridLayoutTraces.RowHeight = {10, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 40, '1x'};
             app.GridLayoutTraces.ColumnSpacing = 8.93749237060547;
             app.GridLayoutTraces.RowSpacing = 6.24249877929688;
             app.GridLayoutTraces.Padding = [8.93749237060547 6.24249877929688 8.93749237060547 6.24249877929688];
@@ -827,6 +819,13 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.ShiftDropcBitand_EditField.HorizontalAlignment = 'center';
             app.ShiftDropcBitand_EditField.Layout.Row = 21;
             app.ShiftDropcBitand_EditField.Layout.Column = 12;
+
+            % Create StatusLFP_TextArea
+            app.StatusLFP_TextArea = uitextarea(app.GridLayoutTraces);
+            app.StatusLFP_TextArea.Editable = 'off';
+            app.StatusLFP_TextArea.FontName = 'Times New Roman';
+            app.StatusLFP_TextArea.Layout.Row = 33;
+            app.StatusLFP_TextArea.Layout.Column = [10 12];
 
             % Create SelectChannelsTab
             app.SelectChannelsTab = uitab(app.TabGroup);
