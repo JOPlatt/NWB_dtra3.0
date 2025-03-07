@@ -126,5 +126,5 @@ for tets=1:4
     end
 
 end 
-textUpdate = append('MClust has finished');
+textUpdate = 'MClust has finished';
 ReadoutUpdate(app,textUpdate)

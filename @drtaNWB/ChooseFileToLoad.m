@@ -1,7 +1,7 @@
 function ChooseFileToLoad(app)
 
-[FileName,PathName] = uigetfile({'*.rhd';'*.dg'; ...
-    '*.edf'},'Select rhd or dg file to open');
+[FileName,PathName] = uigetfile({'*.rhd'; ...
+    '*.edf'},'Select rhd or edf file to open');
 app.drta_handles.p.fullName=[PathName,FileName];
 app.drta_handles.p.FileName=FileName;
 app.drta_handles.p.PathName=PathName;

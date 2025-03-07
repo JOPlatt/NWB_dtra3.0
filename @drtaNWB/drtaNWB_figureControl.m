@@ -163,7 +163,7 @@ if app.Flags.DataShownAs ~=12
             single figure            
             %}
             ChannelName = app.SelectChannelsTab.Children.Children.Children(tagNum,1).Tag;
-            AllChNames{NumberSeen,1} = ChannelName;
+            AllChNames{NumberSeen,1} = append(ChannelName,'------>');
             NumberSeen = NumberSeen + 1;
         end
         tagNum = tagNum + 3;
