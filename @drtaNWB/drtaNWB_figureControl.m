@@ -2,18 +2,18 @@ function drtaNWB_figureControl(app)
 %{
 This function is used to control what is plotted on each figure
 %}
-ChPlace = 2;
-for nk = 1: app.drta_handles.draq_p.no_chans
-    ChannelValues(nk) = app.Channels_GridLayout.Children(ChPlace).Value;
-    if nk <=16
-        ChPlace = ChPlace + 3;
-    else
-        ChPlace = ChPlace + 2;
-    end
-
-end
-%setting inital channel values
-app.drta_handles.p.VisableChannel = ChannelValues;
+% ChPlace = 2;
+% for nk = 1: app.drta_handles.draq_p.no_chans
+%     ChannelValues(nk) = app.Channels_GridLayout.Children(ChPlace).Value;
+%     if nk <=16
+%         ChPlace = ChPlace + 3;
+%     else
+%         ChPlace = ChPlace + 2;
+%     end
+% 
+% end
+% %setting inital channel values
+% app.drta_handles.p.VisableChannel = ChannelValues;
 noch = size(app.drta_handles.p.VisableChannel,2);
 
 currentChan = find(app.drta_handles.p.VisableChannel == 1);

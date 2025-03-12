@@ -1,6 +1,6 @@
 **Drta**
 
-When you type drta you get two windows showing the data in each trial:
+When you type drtaNWB you get two windows showing the data in each trial:
 drtaBrowseTraces and a sample of snips chosen with the thresholds
 entered and turning off some trials/channels with drtaThresholdSnips.
 

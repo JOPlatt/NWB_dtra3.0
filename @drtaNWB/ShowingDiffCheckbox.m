@@ -8,7 +8,9 @@ else
     app.drta_Main.ChDiffChoice = zeros([ChoiceNum,1]);
 end
 for ii = 1:size(fNames,1)
-    app.drta_Main.DiffDropdowns.(fNames{ii}).Enable = Vchoice;
+    if app.drta_handles.p.VisableChannel(ii) == 1
+        app.drta_Main.DiffDropdowns.(fNames{ii}).Enable = Vchoice;
+    end
     if Vchoice == "off"
         app.drta_Main.DiffDropdowns.(fNames{ii}).Value = 'None';
     end
