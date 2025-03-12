@@ -25,6 +25,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         SelectFile_Button           matlab.ui.control.StateButton
         Browse_TracesTab            matlab.ui.container.Tab
         GridLayoutTraces            matlab.ui.container.GridLayout
+        Filterorder_EditField       matlab.ui.control.NumericEditField
+        Filterorder_Label           matlab.ui.control.Label
         StatusLFP_TextArea          matlab.ui.control.TextArea
         ShiftDropcBitand_EditField  matlab.ui.control.NumericEditField
         DataShiftBitand_EditField   matlab.ui.control.NumericEditField
@@ -67,6 +69,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         ControlsLabel               matlab.ui.control.Label
         DigitalTracesLabel          matlab.ui.control.Label
         DigitalControls_Grid        matlab.ui.container.GridLayout
+        StatusDiff_TextArea         matlab.ui.control.TextArea
         Trace_ylimtsMax_EditField   matlab.ui.control.NumericEditField
         Trace_ylimitsMin_EditField  matlab.ui.control.NumericEditField
         Trace_ylimits_Label         matlab.ui.control.Label
@@ -99,7 +102,9 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         drta_Plot % Description
         OutputText % This is the text that is displayed on the GUI
         LFPOutputText = string(); % text that gives status updates for the LFP plots
+        DiffOutputText = string; % text that give status updates for diff plots
         FlagAlpha %  Flag is used to indicate the first call to readout
+
         %         outputTextDisplay % Houses the text for the files that are created
         NWBFileName     % File name that will be used for the NWB file
         OutputLocation % Location of output files
@@ -132,7 +137,9 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         SaveFile(app) % saving output
         drta03_GenerateMClust(app) % runs MClust and saves output
         ShowingDiffCheckbox(app) % creates the structure for dropdown obj
-        LFPplotStatusUpdate(app,textUpdate) % status updates for LFP plots
+        PlotStatusUpdate(app,textUpdate,WhichOne) % status updates for LFP plots
+        FigureSaving(app,varargin) % saving figures
+        AllChControl(app,event) % all channel controls
     end
 
         
@@ -237,23 +244,25 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             TrialNumChange(app,event)
             textUpdate = ['Updating plot to show tiral ' ...
                 num2str(app.TrialNoDigit_EditField.Value)];
-            LFPplotStatusUpdate(app,textUpdate)
+            PlotStatusUpdate(app,textUpdate,1)
+            PlotStatusUpdate(app,textUpdate,2)
             VisualChoice(app);
             drtaNWB_figureControl(app);
             drta03_ShowDigital(app);
             textUpdate = ['Plot updated, now showing tiral ' ...
                 num2str(app.TrialNoDigit_EditField.Value)];
-            LFPplotStatusUpdate(app,textUpdate)
+            PlotStatusUpdate(app,textUpdate,1)
+            PlotStatusUpdate(app,textUpdate,2)
         end
 
         % Value changed function: MClust_Button
         function MClust_ButtonValueChanged(app, event)
             textUpdate = "Generating MClust files, Please wait.";
-            LFPplotStatusUpdate(app,textUpdate)
+            PlotStatusUpdate(app,textUpdate,1)
             app.MClust_Button.Enable = "off";
             drtaGenerateMClust(app.drta_handles);
             textUpdate = "MClust files saved";
-            LFPplotStatusUpdate(app,textUpdate)
+            PlotStatusUpdate(app,textUpdate,1)
         end
 
         % Value changed function: Licks_CheckBox
@@ -269,68 +278,16 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
         % Value changed function: SaveBrowseTracesButton
         function SaveBrowseTracesButtonValueChanged(app, event)
-            % Create GUIDE-style callback args - Added by Migration Tool
-            %             [hObject, eventdata, handles] = convertToGUIDECallbackArguments(app, event); %#ok<ASGLU>
-
-            % hObject    handle to drtaThrSaveMat (see GCBO)
-            % eventdata  reserved - to be defined in a future version of MATLAB
-            % handles    structure with handles and user data (see GUIDATA)
-            if (isfield(app.drta_handles.draq_d,'snip_samp'))
-                try
-                    app.drta_handles = rmfield(app.drta_handles.draq_d,'snip_samp');
-                catch
-                end
-
-                try
-                    app.drta_handles = rmfield(app.drta_handles.draq_d,'snip_index');
-                catch
-                end
-
-                try
-                    app.drta_handles = rmfield(app.drta_handles.draq_d,'snips');
-                catch
-                end
+            textUpdate = "Saving current figure";
+            if event.Source.Tag == "LFPsave"
+                CurrentPlot = app.figurePlot_UIAxes;
+                PlotStatusUpdate(app,textUpdate,1)
             end
-
-            if (isfield(app.drta_handles.draq_d,'noEvents'))
-                app.drta_handles = rmfield(app.drta_handles.draq_d,'noEvents');
-                app.drta_handles = rmfield(app.drta_handles.draq_d,'nEvPerType');
-                app.drta_handles = rmfield(app.drta_handles.draq_d,'nEventTypes');
-                app.drta_handles = rmfield(app.drta_handles.draq_d,'eventlabels');
-
-                try
-                    app.drta_handles = rmfield(handles.draq_d,'events');
-                    app.drta_handles = rmfield(handles.draq_d,'eventType');
-                catch
-                end
-
-
-                try
-                    app.drta_handles = rmfield(handles.draq_d,'blocks');
-                catch
-                end
+            FigureSaving(app,CurrentPlot,1)
+            textUpdate = "Figure saved";
+            if event.Source.Tag == "LFPsave"
+                PlotStatusUpdate(app,textUpdate,1)
             end
-            % Adding meta data if entered
-            if ~isempty(app.MSinput0.Value)
-                Subject_MetaData = struct();
-                Subject_MetaData.age = app.MSinput0.Value;
-                Subject_MetaData.discription = app.MSinput1.Value;
-                Subject_MetaData.genotype = app.MSinput2.Value;
-                Subject_MetaData.sex = app.MSinput3.Value;
-                Subject_MetaData.species = app.MSinput4.Value;
-                Subject_MetaData.ID = app.MSinput5.Value;
-                Subject_MetaData.weight = app.MSinput6.Value;
-                Subject_MetaData.strain = app.MSinput7.Value;
-                if app.MSinput8yes == 1
-                    Subject_MetaData.DOB.year = app.MSinput9.Value;
-                    Subject_MetaData.DOB.month = app.MSinput10.Value;
-                    Subject_MetaData.day = app.MSinput11.Value;
-                end
-                app.drta_handles.p.SubjectMetaData = Subject_MetaData;
-            end
-            type_DropDownValueChanged(app)
-            drtaGenerateEvents(app.drta_handles);
-            app.SaveBrowseTracesButton.Value = 0;
         end
 
         % Value changed function: Load_Button
@@ -376,13 +333,13 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         % Callback function: Browse_TracesTab, UpdateLFPPlot_Button
         function Browse_TracesTabButtonDown(app, event)
             textUpdate = "Updating Plot, Please wait.";
-            LFPplotStatusUpdate(app,textUpdate)
+            PlotStatusUpdate(app,textUpdate,1)
             if app.Flags.fileLoaded == true
                 VisualChoice(app);
                 drtaNWB_figureControl(app);
             end
             textUpdate = "Plot Updated";
-            LFPplotStatusUpdate(app,textUpdate)
+            PlotStatusUpdate(app,textUpdate,1)
         end
 
         % Value changed function: ExtraFigureOptions_Button
@@ -396,7 +353,11 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
         % Callback function: Digital_Traces_Tab, UpdateDigitPlots_Button
         function UpdateDigitPlots_ButtonPushed(app, event)
+            textUpdate = "Updating Plot, Please wait.";
+            PlotStatusUpdate(app,textUpdate,2);
             drta03_ShowDigital(app);
+            textUpdate = "Plot Updated";
+            PlotStatusUpdate(app,textUpdate,2);
         end
 
         % Button pushed function: Savematfile_Button
@@ -423,13 +384,13 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
-            app.UIFigure.Position = [527 219 1100 760];
+            app.UIFigure.Position = [527 219 1134 817];
             app.UIFigure.Name = 'MATLAB App';
             app.UIFigure.Scrollable = 'on';
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.UIFigure);
-            app.TabGroup.Position = [1 1 1099 760];
+            app.TabGroup.Position = [1 1 1134 817];
 
             % Create drta_loadTab
             app.drta_loadTab = uitab(app.TabGroup);
@@ -575,7 +536,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create GridLayoutTraces
             app.GridLayoutTraces = uigridlayout(app.Browse_TracesTab);
             app.GridLayoutTraces.ColumnWidth = {79, 38, '1.95x', 82, '1x', 84, 66, 85, '1x', 84, 50, 50, 50};
-            app.GridLayoutTraces.RowHeight = {10, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 40, '1x'};
+            app.GridLayoutTraces.RowHeight = {10, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 40, '1x'};
             app.GridLayoutTraces.ColumnSpacing = 8.93749237060547;
             app.GridLayoutTraces.RowSpacing = 6.24249877929688;
             app.GridLayoutTraces.Padding = [8.93749237060547 6.24249877929688 8.93749237060547 6.24249877929688];
@@ -589,7 +550,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create Yrange_Label
             app.Yrange_Label = uilabel(app.GridLayoutTraces);
-            app.Yrange_Label.Layout.Row = 25;
+            app.Yrange_Label.Layout.Row = 27;
             app.Yrange_Label.Layout.Column = 10;
             app.Yrange_Label.Text = 'Y Range (uV):';
 
@@ -597,7 +558,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Yrange_amt = uieditfield(app.GridLayoutTraces, 'numeric');
             app.Yrange_amt.ValueChangedFcn = createCallbackFcn(app, @Yrange_amtValueChanged, true);
             app.Yrange_amt.HorizontalAlignment = 'center';
-            app.Yrange_amt.Layout.Row = 25;
+            app.Yrange_amt.Layout.Row = 27;
             app.Yrange_amt.Layout.Column = 11;
             app.Yrange_amt.Value = 4000;
 
@@ -605,7 +566,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Tnum_Larrow = uibutton(app.GridLayoutTraces, 'push');
             app.Tnum_Larrow.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
             app.Tnum_Larrow.Tag = 'TnumMinus';
-            app.Tnum_Larrow.Layout.Row = 23;
+            app.Tnum_Larrow.Layout.Row = 25;
             app.Tnum_Larrow.Layout.Column = 12;
             app.Tnum_Larrow.Text = '<--';
 
@@ -613,7 +574,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Tnum_Rarrow = uibutton(app.GridLayoutTraces, 'push');
             app.Tnum_Rarrow.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
             app.Tnum_Rarrow.Tag = 'TnumPlus';
-            app.Tnum_Rarrow.Layout.Row = 23;
+            app.Tnum_Rarrow.Layout.Row = 25;
             app.Tnum_Rarrow.Layout.Column = 13;
             app.Tnum_Rarrow.Text = '-->';
 
@@ -622,7 +583,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Tnum_amt.ValueChangedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
             app.Tnum_amt.Tag = 'TnumField';
             app.Tnum_amt.HorizontalAlignment = 'center';
-            app.Tnum_amt.Layout.Row = 23;
+            app.Tnum_amt.Layout.Row = 25;
             app.Tnum_amt.Layout.Column = 11;
             app.Tnum_amt.Value = 1;
 
@@ -631,26 +592,26 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Interval_amt.ValueChangedFcn = createCallbackFcn(app, @Interval_amtValueChanged, true);
             app.Interval_amt.Tag = 'InterLFP';
             app.Interval_amt.HorizontalAlignment = 'center';
-            app.Interval_amt.Layout.Row = 27;
+            app.Interval_amt.Layout.Row = 29;
             app.Interval_amt.Layout.Column = 11;
             app.Interval_amt.Value = 1;
 
             % Create Interval_Label
             app.Interval_Label = uilabel(app.GridLayoutTraces);
-            app.Interval_Label.Layout.Row = 27;
+            app.Interval_Label.Layout.Row = 29;
             app.Interval_Label.Layout.Column = 10;
             app.Interval_Label.Text = 'Interval (sec):';
 
             % Create Tnum_Label
             app.Tnum_Label = uilabel(app.GridLayoutTraces);
-            app.Tnum_Label.Layout.Row = 23;
+            app.Tnum_Label.Layout.Row = 25;
             app.Tnum_Label.Layout.Column = 10;
             app.Tnum_Label.Text = 'Trial No:';
 
             % Create Choice_DropDown
             app.Choice_DropDown = uidropdown(app.GridLayoutTraces);
             app.Choice_DropDown.Items = {'Raw', 'User Choice', 'Wide 4-100', 'High Theta 6-14', 'Theta 2-14', 'Beta 15-36', 'Gamma1 35-65', 'Gamma2 65-95', 'Gamma 35-95', 'Spikes 500-5000', 'Spike var'};
-            app.Choice_DropDown.Layout.Row = 17;
+            app.Choice_DropDown.Layout.Row = 19;
             app.Choice_DropDown.Layout.Column = [10 11];
             app.Choice_DropDown.Value = 'Raw';
 
@@ -659,13 +620,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Yrange_DropDown.Items = {'all', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16'};
             app.Yrange_DropDown.ValueChangedFcn = createCallbackFcn(app, @Yrange_DropDownValueChanged, true);
             app.Yrange_DropDown.FontName = 'Times New Roman';
-            app.Yrange_DropDown.Layout.Row = 25;
+            app.Yrange_DropDown.Layout.Row = 27;
             app.Yrange_DropDown.Layout.Column = [12 13];
             app.Yrange_DropDown.Value = 'all';
 
             % Create Licks_CheckBox
             app.Licks_CheckBox = uicheckbox(app.GridLayoutTraces);
             app.Licks_CheckBox.ValueChangedFcn = createCallbackFcn(app, @Licks_CheckBoxValueChanged, true);
+            app.Licks_CheckBox.Enable = 'off';
             app.Licks_CheckBox.Text = 'Exclude Licks';
             app.Licks_CheckBox.Layout.Row = 7;
             app.Licks_CheckBox.Layout.Column = [10 11];
@@ -716,7 +678,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create nxSD_Label
             app.nxSD_Label = uilabel(app.GridLayoutTraces);
-            app.nxSD_Label.Layout.Row = 15;
+            app.nxSD_Label.Layout.Row = 17;
             app.nxSD_Label.Layout.Column = 10;
             app.nxSD_Label.Text = 'Set nxSD';
 
@@ -724,7 +686,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.nxSD_amt = uieditfield(app.GridLayoutTraces, 'numeric');
             app.nxSD_amt.Tag = 'nxSD';
             app.nxSD_amt.HorizontalAlignment = 'center';
-            app.nxSD_amt.Layout.Row = 15;
+            app.nxSD_amt.Layout.Row = 17;
             app.nxSD_amt.Layout.Column = 11;
             app.nxSD_amt.Value = 2.5;
 
@@ -732,22 +694,21 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.thr_amt = uieditfield(app.GridLayoutTraces, 'numeric');
             app.thr_amt.Tag = 'Thr';
             app.thr_amt.HorizontalAlignment = 'center';
-            app.thr_amt.Layout.Row = 13;
+            app.thr_amt.Layout.Row = 15;
             app.thr_amt.Layout.Column = 11;
 
             % Create thr_Label
             app.thr_Label = uilabel(app.GridLayoutTraces);
-            app.thr_Label.Layout.Row = 13;
+            app.thr_Label.Layout.Row = 15;
             app.thr_Label.Layout.Column = 10;
             app.thr_Label.Text = 'Set thr (uv)';
 
             % Create SaveBrowseTracesButton
             app.SaveBrowseTracesButton = uibutton(app.GridLayoutTraces, 'state');
             app.SaveBrowseTracesButton.ValueChangedFcn = createCallbackFcn(app, @SaveBrowseTracesButtonValueChanged, true);
-            app.SaveBrowseTracesButton.Enable = 'off';
-            app.SaveBrowseTracesButton.Visible = 'off';
+            app.SaveBrowseTracesButton.Tag = 'LFPsave';
             app.SaveBrowseTracesButton.Text = 'Save Browse Traces';
-            app.SaveBrowseTracesButton.Layout.Row = 31;
+            app.SaveBrowseTracesButton.Layout.Row = 33;
             app.SaveBrowseTracesButton.Layout.Column = [10 11];
 
             % Create TrialOutcome
@@ -759,7 +720,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create Plot_Panel
             app.Plot_Panel = uipanel(app.GridLayoutTraces);
-            app.Plot_Panel.Layout.Row = [3 34];
+            app.Plot_Panel.Layout.Row = [3 36];
             app.Plot_Panel.Layout.Column = [1 9];
 
             % Create Plot_mainGrid
@@ -782,13 +743,13 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.ExtraFigureOptions_Button.Visible = 'off';
             app.ExtraFigureOptions_Button.Text = 'Extra Figure Options';
             app.ExtraFigureOptions_Button.FontName = 'Times New Roman';
-            app.ExtraFigureOptions_Button.Layout.Row = 29;
+            app.ExtraFigureOptions_Button.Layout.Row = 31;
             app.ExtraFigureOptions_Button.Layout.Column = [10 11];
 
             % Create UpdateLFPPlot_Button
             app.UpdateLFPPlot_Button = uibutton(app.GridLayoutTraces, 'push');
             app.UpdateLFPPlot_Button.ButtonPushedFcn = createCallbackFcn(app, @Browse_TracesTabButtonDown, true);
-            app.UpdateLFPPlot_Button.Layout.Row = 17;
+            app.UpdateLFPPlot_Button.Layout.Row = 19;
             app.UpdateLFPPlot_Button.Layout.Column = [12 13];
             app.UpdateLFPPlot_Button.Text = 'Update LFP Plot';
 
@@ -796,7 +757,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Data_Shift_Bitand_Label = uilabel(app.GridLayoutTraces);
             app.Data_Shift_Bitand_Label.HorizontalAlignment = 'center';
             app.Data_Shift_Bitand_Label.FontName = 'Times New Roman';
-            app.Data_Shift_Bitand_Label.Layout.Row = 19;
+            app.Data_Shift_Bitand_Label.Layout.Row = 21;
             app.Data_Shift_Bitand_Label.Layout.Column = [10 11];
             app.Data_Shift_Bitand_Label.Text = 'Data_Shift_Bitand';
 
@@ -804,28 +765,42 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Shift_dropc_Bitand_Label = uilabel(app.GridLayoutTraces);
             app.Shift_dropc_Bitand_Label.HorizontalAlignment = 'center';
             app.Shift_dropc_Bitand_Label.FontName = 'Times New Roman';
-            app.Shift_dropc_Bitand_Label.Layout.Row = 21;
+            app.Shift_dropc_Bitand_Label.Layout.Row = 23;
             app.Shift_dropc_Bitand_Label.Layout.Column = [10 11];
             app.Shift_dropc_Bitand_Label.Text = 'Shift_dropc_Bitand';
 
             % Create DataShiftBitand_EditField
             app.DataShiftBitand_EditField = uieditfield(app.GridLayoutTraces, 'numeric');
             app.DataShiftBitand_EditField.HorizontalAlignment = 'center';
-            app.DataShiftBitand_EditField.Layout.Row = 19;
+            app.DataShiftBitand_EditField.Layout.Row = 21;
             app.DataShiftBitand_EditField.Layout.Column = 12;
 
             % Create ShiftDropcBitand_EditField
             app.ShiftDropcBitand_EditField = uieditfield(app.GridLayoutTraces, 'numeric');
             app.ShiftDropcBitand_EditField.HorizontalAlignment = 'center';
-            app.ShiftDropcBitand_EditField.Layout.Row = 21;
+            app.ShiftDropcBitand_EditField.Layout.Row = 23;
             app.ShiftDropcBitand_EditField.Layout.Column = 12;
 
             % Create StatusLFP_TextArea
             app.StatusLFP_TextArea = uitextarea(app.GridLayoutTraces);
             app.StatusLFP_TextArea.Editable = 'off';
             app.StatusLFP_TextArea.FontName = 'Times New Roman';
-            app.StatusLFP_TextArea.Layout.Row = 33;
+            app.StatusLFP_TextArea.Layout.Row = 35;
             app.StatusLFP_TextArea.Layout.Column = [10 12];
+
+            % Create Filterorder_Label
+            app.Filterorder_Label = uilabel(app.GridLayoutTraces);
+            app.Filterorder_Label.Layout.Row = 13;
+            app.Filterorder_Label.Layout.Column = 10;
+            app.Filterorder_Label.Text = 'Filter order';
+
+            % Create Filterorder_EditField
+            app.Filterorder_EditField = uieditfield(app.GridLayoutTraces, 'numeric');
+            app.Filterorder_EditField.Limits = [0 Inf];
+            app.Filterorder_EditField.HorizontalAlignment = 'center';
+            app.Filterorder_EditField.Layout.Row = 13;
+            app.Filterorder_EditField.Layout.Column = 11;
+            app.Filterorder_EditField.Value = 8;
 
             % Create SelectChannelsTab
             app.SelectChannelsTab = uitab(app.TabGroup);
@@ -837,7 +812,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.ChannelPanel = uipanel(app.SelectChannelsTab);
             app.ChannelPanel.AutoResizeChildren = 'off';
             app.ChannelPanel.BorderType = 'none';
-            app.ChannelPanel.Position = [1 1 1097 731];
+            app.ChannelPanel.Position = [1 58 1097 731];
 
             % Create Channels_GridLayout
             app.Channels_GridLayout = uigridlayout(app.ChannelPanel);
@@ -907,7 +882,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create DigitalControls_Grid
             app.DigitalControls_Grid = uigridlayout(app.DigitalMain_GridLayout);
             app.DigitalControls_Grid.ColumnWidth = {100, 40, 70, 70, '1x'};
-            app.DigitalControls_Grid.RowHeight = {'1x', 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, '1x'};
+            app.DigitalControls_Grid.RowHeight = {'1x', 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 40, '1x'};
             app.DigitalControls_Grid.ColumnSpacing = 8;
             app.DigitalControls_Grid.RowSpacing = 2;
             app.DigitalControls_Grid.Padding = [15 10 10 10];
@@ -916,6 +891,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create ExcLicks_CheckBox
             app.ExcLicks_CheckBox = uicheckbox(app.DigitalControls_Grid);
+            app.ExcLicks_CheckBox.Enable = 'off';
             app.ExcLicks_CheckBox.Text = '';
             app.ExcLicks_CheckBox.FontName = 'Times New Roman';
             app.ExcLicks_CheckBox.Layout.Row = 4;
@@ -1031,6 +1007,11 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Trace_ylimtsMax_EditField.Layout.Row = 2;
             app.Trace_ylimtsMax_EditField.Layout.Column = 4;
             app.Trace_ylimtsMax_EditField.Value = 3000;
+
+            % Create StatusDiff_TextArea
+            app.StatusDiff_TextArea = uitextarea(app.DigitalControls_Grid);
+            app.StatusDiff_TextArea.Layout.Row = 16;
+            app.StatusDiff_TextArea.Layout.Column = [1 3];
 
             % Create DigitalTracesLabel
             app.DigitalTracesLabel = uilabel(app.DigitalMain_GridLayout);

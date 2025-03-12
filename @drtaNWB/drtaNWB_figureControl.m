@@ -117,7 +117,8 @@ if app.Flags.DataShownAs ~=12
 
         app.drta_handles.p.lfp.minLFP=fpass(1);
         app.drta_handles.p.lfp.maxLFP=fpass(2);
-        bpFilt = designfilt('bandpassiir','FilterOrder',6, ...
+        FO = app.Filterorder_EditField.Value;
+        bpFilt = designfilt('bandpassiir','FilterOrder',FO, ...
             'HalfPowerFrequency1',fpass(1),'HalfPowerFrequency2',fpass(2), ...
             'SampleRate',floor(app.drta_handles.draq_p.ActualRate));
         data1=filtfilt(bpFilt,data);
