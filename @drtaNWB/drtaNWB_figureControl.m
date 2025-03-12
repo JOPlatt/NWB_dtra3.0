@@ -14,7 +14,7 @@ This function is used to control what is plotted on each figure
 % end
 % %setting inital channel values
 % app.drta_handles.p.VisableChannel = ChannelValues;
-noch = size(app.drta_handles.p.VisableChannel,2);
+noch = size(app.drta_handles.p.VisableChannel,1);
 
 currentChan = find(app.drta_handles.p.VisableChannel == 1);
 
