@@ -6,16 +6,30 @@ app.drta_handles.drtaWhichFile = FileName;
 %     %Setup the matlab header file
 [app.drta_handles.draq_p,app.drta_handles.draq_d]=drta03_read_Intan_RHD2000_header(app);
 
+NumOfCh = app.drta_handles.draq_d.num_amplifier_channels;
+app.drta_handles.p.ch_processed(1:NumOfCh)=1;
+app.drta_handles.p.lower_limit(1:NumOfCh)=-5000;
+app.drta_handles.p.threshold(1:NumOfCh)=1300;
+app.drta_handles.p.threexsdexists(1:NumOfCh) = 0;
+app.drta_handles.p.upper_limit(1:NumOfCh)=5000;
+if ~isfield(app.drta_handles.p,'doSubtract')
+    app.drta_handles.p.doSubtract = 0;
+    app.drta_handles.p.subtractCh = cell(1,NumOfCh);
+end
+app.drta_handles.draq_p.no_spike_ch=NumOfCh;
+app.drta_handles.draq_p.prev_ylim(1:NumOfCh)=4000;
+app.drta_handles.draq_p.no_chans=NumOfCh;
+
 
 scaling = app.drta_handles.draq_p.scaling;
 offset = app.drta_handles.draq_p.offset;
 
-channelAmt = 16;
+channelAmt = NumOfCh;
 app.drta_handles.draq_p.dgordra = 3;
 app.drta_handles.draq_p.no_spike_ch=channelAmt; % need to find correct number
 app.drta_handles.draq_p.daq_gain=1;
 app.drta_handles.draq_p.prev_ylim(1:17)=4000;
-app.drta_handles.draq_p.no_chans=22; % need to find correct number
+app.drta_handles.draq_p.no_chans=channelAmt; % need to find correct number
 app.drta_handles.draq_p.acquire_display_start=0;
 app.drta_handles.draq_p.inp_max=10;
 % app.drta_handles.p.trialNo=2;
@@ -101,7 +115,8 @@ ii_from=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.
     *app.drta_handles.draq_p.ActualRate+1);
 ii_to=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time...
     +app.drta_handles.p.display_interval)*app.drta_handles.draq_p.ActualRate)-2000;
-ii=19; %These are licsk
+ii = app.drta_handles.draq_p.no_chans + 3; %These are licsk
+% ii=19; 
 
 old_trial=app.drta_handles.p.trialNo;
 
@@ -116,13 +131,10 @@ end
 
 for trialNo=1:length(app.drta_handles.draq_d.t_trial)
     app.drta_handles.p.trialNo=trialNo;
-
+    data_this_trial=drtaNWB_GetTraceData(app.drta_handles);
     %         data_this_trial=handles.draq_d.data(floor(handles.draq_p.ActualRate*handles.draq_p.sec_per_trigger*handles.draq_p.no_chans*(trialNo-1)+1):...
     %             floor(handles.draq_p.ActualRate*handles.draq_p.sec_per_trigger*handles.draq_p.no_chans*trialNo)-2000);
     %
-    data_this_trial=drtaNWB_GetTraceData(app.drta_handles);
-
-
     this_data=[];
     this_data=data_this_trial(floor((ii-1)*app.drta_handles.draq_p.ActualRate*app.drta_handles.draq_p.sec_per_trigger):floor(ii*app.drta_handles.draq_p.ActualRate*app.drta_handles.draq_p.sec_per_trigger));
     one_per(trialNo)=prctile(this_data(ii_from:ii_to),1);

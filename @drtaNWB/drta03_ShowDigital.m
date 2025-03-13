@@ -28,7 +28,7 @@ data=drtaNWB_GetTraceData(handles);
 %21 photodiode
 %22 digital input
 
-this_record=17;
+this_record= size(data,2)-7;
 %trig=data_this_trial(floor((this_record-1)*handles.draq_p.ActualRate*handles.draq_p.sec_per_trigger):floor(this_record*handles.draq_p.ActualRate*handles.draq_p.sec_per_trigger));
 trig=data(:,this_record);
 
@@ -38,7 +38,6 @@ ii_from=floor((handles.draq_p.acquire_display_start+handles.p.start_display_time
             *handles.draq_p.ActualRate+1);
 ii_to=floor((handles.draq_p.acquire_display_start+handles.p.start_display_time...
             +handles.p.display_interval)*handles.draq_p.ActualRate);
-
 plot(PlotNo1,trig(ii_from:ii_to));
 
 ylabel(PlotNo1,'Trigger');
@@ -62,20 +61,20 @@ ylim(PlotNo1,[app.Trace_ylimitsMin_EditField.Value app.Trace_ylimtsMax_EditField
 
 %Plot 18 to 21
 
-for ii=18:handles.draq_p.no_chans-1
+for ii=size(data,2)-6:size(data,2)-3
     
     this_data=[];
     %this_data=data_this_trial(floor((ii-1)*handles.draq_p.ActualRate*handles.draq_p.sec_per_trigger):floor(ii*handles.draq_p.ActualRate*handles.draq_p.sec_per_trigger));
     this_data=data(:,ii);
     CurrentPlot = [];
     switch ii
-        case 18
+        case 34
             CurrentPlot = app.Sniffing_Plot;
-        case 19
+        case 35
             CurrentPlot = app.Lick_Plot;
-        case 20
+        case 36
             CurrentPlot = app.In_Port_Plot;
-        case 21
+        case 37
             CurrentPlot = app.Diode_Plot;
     end
     plot(CurrentPlot,this_data(ii_from:ii_to),'-b');
@@ -103,13 +102,13 @@ for ii=18:handles.draq_p.no_chans-1
     xticklabels(CurrentPlot,'');
      
     switch ii
-        case 18
+        case 34
             ylabel(CurrentPlot,'Sniffing');
-        case 19
+        case 35
             ylabel(CurrentPlot,'Lick');
-        case 20
+        case 36
             ylabel(CurrentPlot,'In port');
-        case 21
+        case 37
             ylabel(CurrentPlot,'Diode');
     end
     
@@ -117,7 +116,7 @@ end
 
 
 this_data=[];
-this_data=data(:,22);
+this_data=data(:,end);
 CurrentPlot = [];
 CurrentPlot = app.Digital_Plot;
 try

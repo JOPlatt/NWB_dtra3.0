@@ -4,7 +4,7 @@ addpath(genpath(fullfile(pwd,"ExternalCode")));
 %{
 Setting up initial parameters (drta_handles.p)
 %}
-app.drta_handles.p.ch_processed(1:16)=1;
+
 %
 app.drta_handles.p.do_filter=1;
 app.drta_handles.p.dt_pre_snip=0.0005;
@@ -24,7 +24,7 @@ app.drta_handles.p.lfp.maxLFP=9800;
 app.drta_handles.p.lfp.minLFP=-9800;
 app.drta_handles.p.lfp.delta_max_min_out=0.5;
 app.drta_handles.p.low_filter = 1000;
-app.drta_handles.p.lower_limit(1:16)=-5000;
+
 %
 app.drta_handles.p.nxSD = 2.5;
 %
@@ -38,11 +38,11 @@ app.drta_handles.p.setm2p5SD = 0;
 app.drta_handles.p.setnxSD = 0;
 %
 app.drta_handles.p.thrToSet = 0;
-app.drta_handles.p.threshold(1:16)=1300;
-app.drta_handles.p.threexsdexists(1:16) = 0;
+
+
 app.drta_handles.p.trialNo = 1;
 %
-app.drta_handles.p.upper_limit(1:16)=5000;
+
 %
 app.drta_handles.p.whichPlot = 1;
 app.drta_handles.p.which_protocol = 1;
@@ -56,17 +56,13 @@ app.drta_handles.p.which_channel_th=1;
 app.drta_handles.p.mspy_exclude_dt=1; %Exclude
 app.drta_handles.p.pmspy_key_offset=2; %Use 2 for mspy before 3/13, and 0 afterwards
 
-if ~isfield(app.drta_handles.p,'doSubtract')
-    app.drta_handles.p.doSubtract = 0;
-    app.drta_handles.p.subtractCh = cell(1,16);
-end
+
 
 %
 app.drta_handles.draq_p.auto_thr_sign=1;
-app.drta_handles.draq_p.no_spike_ch=16;
+
 app.drta_handles.draq_p.daq_gain=1;
-app.drta_handles.draq_p.prev_ylim(1:17)=4000;
-app.drta_handles.draq_p.no_chans=22;
+
 app.drta_handles.draq_p.acquire_display_start=0;
 app.drta_handles.draq_p.inp_max=10;
 % setting GUI values
