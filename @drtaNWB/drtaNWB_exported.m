@@ -38,7 +38,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         Plot_mainGrid               matlab.ui.container.GridLayout
         figurePlot_UIAxes           matlab.ui.control.UIAxes
         TrialOutcome                matlab.ui.control.Label
-        SaveBrowseTracesButton      matlab.ui.control.StateButton
+        SaveBrowseTracesPlotButton  matlab.ui.control.StateButton
         thr_Label                   matlab.ui.control.Label
         thr_amt                     matlab.ui.control.NumericEditField
         nxSD_amt                    matlab.ui.control.NumericEditField
@@ -277,8 +277,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             LFPplotChange(app,event)
         end
 
-        % Value changed function: SaveBrowseTracesButton
-        function SaveBrowseTracesButtonValueChanged(app, event)
+        % Value changed function: SaveBrowseTracesPlotButton
+        function SaveBrowseTracesPlotButtonValueChanged(app, event)
             textUpdate = "Saving current figure";
             if event.Source.Tag == "LFPsave"
                 CurrentPlot = app.figurePlot_UIAxes;
@@ -704,13 +704,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.thr_Label.Layout.Column = 10;
             app.thr_Label.Text = 'Set thr (uv)';
 
-            % Create SaveBrowseTracesButton
-            app.SaveBrowseTracesButton = uibutton(app.GridLayoutTraces, 'state');
-            app.SaveBrowseTracesButton.ValueChangedFcn = createCallbackFcn(app, @SaveBrowseTracesButtonValueChanged, true);
-            app.SaveBrowseTracesButton.Tag = 'LFPsave';
-            app.SaveBrowseTracesButton.Text = 'Save Browse Traces';
-            app.SaveBrowseTracesButton.Layout.Row = 33;
-            app.SaveBrowseTracesButton.Layout.Column = [10 11];
+            % Create SaveBrowseTracesPlotButton
+            app.SaveBrowseTracesPlotButton = uibutton(app.GridLayoutTraces, 'state');
+            app.SaveBrowseTracesPlotButton.ValueChangedFcn = createCallbackFcn(app, @SaveBrowseTracesPlotButtonValueChanged, true);
+            app.SaveBrowseTracesPlotButton.Tag = 'LFPsave';
+            app.SaveBrowseTracesPlotButton.Text = 'Save Browse Traces Plot';
+            app.SaveBrowseTracesPlotButton.FontName = 'Times New Roman';
+            app.SaveBrowseTracesPlotButton.Layout.Row = 33;
+            app.SaveBrowseTracesPlotButton.Layout.Column = [10 11];
 
             % Create TrialOutcome
             app.TrialOutcome = uilabel(app.GridLayoutTraces);

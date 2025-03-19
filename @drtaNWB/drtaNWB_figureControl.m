@@ -20,12 +20,12 @@ currentChan = find(app.drta_handles.p.VisableChannel == 1);
 
 %pulling in relevant information about what needs to be plotted
 data = drtaNWB_GetTraceData(app.drta_handles);
-digi = data(:,app.drta_handles.draq_p.no_chans);
+digi = data(:,end);
 
 %determining the outcome fo the trial being plotted
 try
     if app.DataShiftBitand_EditField.Value == 0
-        shiftdata30 = bitand(digi,1+2+4+8+16+32);
+        shiftdata30=bitand(digi,2+4+8+16);
     else
         shiftdata30 = bitand(digi,DataShiftBitand_EditField.Value);
     end
@@ -257,22 +257,24 @@ if app.Flags.DataShownAs ~=12
             (floor(-2*app.drta_handles.draq_p.prev_ylim(ii)/3)); ...
             (floor(2*app.drta_handles.draq_p.prev_ylim(ii)/3)); ...
             MaxedData];
-        % if ik > 1
+        if sum(app.drta_handles.p.VisableChannel) > 1
             lowestTic{ik} = num2str(-app.drta_handles.draq_p.prev_ylim(ii));
             lowTic{ik} = num2str(floor(-2*app.drta_handles.draq_p.prev_ylim(ii)/3));
             higerTic{ik} = num2str(floor(2*app.drta_handles.draq_p.prev_ylim(ii)/3));
             highestTic{ik} = num2str(app.drta_handles.draq_p.prev_ylim(ii));
             dataNorm = normalize(NeededNormed ,"range",[(rangespace) (rangespace+1)]);
-            CombinedDataSets(:,ik) = dataNorm(5:end);
-            Wlimit(:,ik) = dataNorm(1:2);
-            Mlimit(:,ik) = dataNorm(3:4);
-            yPlace(ik) = rangespace-.15;
-
-        % else
-        %     CombinedDataSets = NeededNormed;
-        % end
+        else
+            dataNorm = NeededNormed;
+        end
+        CombinedDataSets(:,ik) = dataNorm(5:end);
+        Wlimit(:,ik) = dataNorm(1:2);
+        Mlimit(:,ik) = dataNorm(3:4);
+        yPlace(ik) = rangespace-.15;
+        CombinedRawDataSets(:,ik) = data1(ii_from:ii_to,ii);
+        
 
     end
+    
     %happends independent of the number of channels shown Plot_figureGrid
 
     cla(app.figurePlot_UIAxes);
@@ -291,6 +293,7 @@ if app.Flags.DataShownAs ~=12
         app.drta_Main.ChannelData = CombinedDataSets;
         plot(PlotSpace,CombinedDataSets)
         ylim(PlotSpace,[(yPlace(1)-.1) (yPlace(end)+1.4)]);
+        YaxLim = [(yPlace(1)-.1) (yPlace(end)+1.4)];
         %placing all the y-lines
         if size(yPlace,2) > 1
             yline(PlotSpace,yPlace(2:end),"LineWidth",0.8,"Color","black","Alpha",1)
@@ -303,6 +306,7 @@ if app.Flags.DataShownAs ~=12
         tLabels = [(yPlace+0.15),(yPlace+1.15)];
     else
         ylim(PlotSpace,[-app.drta_handles.draq_p.prev_ylim(ii) app.drta_handles.draq_p.prev_ylim(ii)])
+        YaxLim = [-app.drta_handles.draq_p.prev_ylim(ii) app.drta_handles.draq_p.prev_ylim(ii)];
     end
     xlabel(PlotSpace,'Time (sec)');
     if sum(app.drta_handles.p.VisableChannel) < 11
@@ -355,6 +359,16 @@ if app.Flags.DataShownAs ~=12
     PlotSpace.XTickLabel = tick_label;
     app.drta_Main.xticlabels = tick_label;
 
+    app.drta_Plot.traces.NumChShown = ik;
+    app.drta_Plot.traces.normData = app.drta_Main.ChannelData;
+    app.drta_Plot.traces.rawData = CombinedRawDataSets;
+    app.drta_Plot.traces.Ytics = combinedTicks;
+    app.drta_Plot.traces.Ylabels = allTickLabels;
+    app.drta_Plot.traces.Ylimits = YaxLim;
+    app.drta_Plot.traces.Xtics =  0:d_samples:app.drta_handles.p.display_interval*app.drta_handles.draq_p.ActualRate;
+    app.drta_Plot.traces.Xticlabels = app.drta_Main.xticlabels;
+    app.drta_Plot.traces.Xlabels = 'Time (sec)';
+    app.drta_Plot.traces.Title = app.TrialOutcome.Text;
 
 
 end
