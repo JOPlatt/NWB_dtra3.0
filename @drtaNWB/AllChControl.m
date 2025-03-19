@@ -49,5 +49,16 @@ switch tagName
         else
             app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 0;
         end
-
+    case 'PresetCh'
+        AllChnames = fieldnames(app.drta_Main.ChShown);
+        fNames = fieldnames(app.drta_Main.DiffDropdowns);
+        for ii = 1:size(AllChnames,1)
+            if app.drta_handles.p.VisableChannel(ii) == 1
+                app.drta_Main.ChShown.(AllChnames{ii}).Value = 1;
+                app.drta_Main.DiffDropdowns.(fNames{ii}).Enable = 1;
+            else
+                app.drta_Main.ChShown.(AllChnames{ii}).Value = 0;
+                app.drta_Main.DiffDropdowns.(fNames{ii}).Enable = 0;
+            end
+        end
 end

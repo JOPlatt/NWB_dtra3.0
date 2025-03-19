@@ -140,6 +140,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         PlotStatusUpdate(app,textUpdate,WhichOne) % status updates for LFP plots
         FigureSaving(app,varargin) % saving figures
         AllChControl(app,event) % all channel controls
+        presetControl(app,event) % channel preset controls
     end
 
         
