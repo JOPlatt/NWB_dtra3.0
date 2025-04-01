@@ -1,6 +1,7 @@
 function drta03_SetPreferences(app)
 
 addpath(genpath(fullfile(pwd,"ExternalCode")));
+addpath(genpath(fullfile(pwd,"matnwb")));
 %{
 Setting up initial parameters (drta_handles.p)
 %}
