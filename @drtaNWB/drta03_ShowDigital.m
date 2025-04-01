@@ -68,18 +68,18 @@ for ii=size(data,2)-6:size(data,2)-3
     this_data=data(:,ii);
     CurrentPlot = [];
     switch ii
-        case 34
+        case (size(data,2)-6)
             CurrentPlot = app.Sniffing_Plot;
-        case 35
+        case (size(data,2)-5)
             CurrentPlot = app.Lick_Plot;
-        case 36
+        case (size(data,2)-4)
             CurrentPlot = app.In_Port_Plot;
-        case 37
+        case (size(data,2)-3)
             CurrentPlot = app.Diode_Plot;
     end
     plot(CurrentPlot,this_data(ii_from:ii_to),'-b');
     exc_sn = app.ExcLicks_CheckBox.Value;
-    if (exc_sn) && (ii==19)
+    if (exc_sn) && (ii==(size(data,2)-5))
         [~,lct]=findpeaks(abs(this_data(ii_from+1:ii_to)-this_data(ii_from:ii_to-1)),'MinPeakHeight',handles.p.exc_sn_thr);
         hold on
         plot(CurrentPlot,lct,this_data(ii_from+lct),'or')
@@ -102,13 +102,13 @@ for ii=size(data,2)-6:size(data,2)-3
     xticklabels(CurrentPlot,'');
      
     switch ii
-        case 34
+        case (size(data,2)-6)
             ylabel(CurrentPlot,'Sniffing');
-        case 35
+        case (size(data,2)-5)
             ylabel(CurrentPlot,'Lick');
-        case 36
+        case (size(data,2)-4)
             ylabel(CurrentPlot,'In port');
-        case 37
+        case (size(data,2)-3)
             ylabel(CurrentPlot,'Diode');
     end
     
