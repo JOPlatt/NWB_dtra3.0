@@ -82,6 +82,6 @@ for oo = 1:app.Flags.DataLoaded
     Batch_open_rhd(app);
     BatchSaveJTtimes(app);
     if app.RunMClust_CheckBox.Value == 1
-        BatchMClustSave(app);
+        drta03_GenerateMClust(app);
     end
 end

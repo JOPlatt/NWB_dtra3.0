@@ -1,6 +1,10 @@
 function drta03_GenerateMClust(app)
 
-handles = app.drta_handles;
+if app.Flags.RunningWhat == 2
+    handles = app.drta_handles;
+else
+    handles = app.drta_data;
+end
 noch=handles.draq_p.no_spike_ch;
 handles.draq_d.snip_samp=zeros(1,noch);
 samp_bef=16;
