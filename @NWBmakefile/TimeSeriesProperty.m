@@ -1,0 +1,16 @@
+function TimeSeriesProperty(app)
+
+dt = app.drta.p.display_interval/5;
+dt = round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
+d_samples = dt*app.drta.draq_p.ActualRate;
+TimeArray = 0:d_samples:app.drta.p.display_interval*app.drta.draq_p.ActualRate;
+
+time_series_with_rate = types.core.TimeSeries( ...
+    'description', 'Intan recording time series', ...
+    'data', TimeArray, ...
+    'data_unit', 'm', ...
+    'starting_time', 0.0, ...
+    'starting_time_rate', d_samples);
+
+
+app.TimeTable = time_series_with_rate;

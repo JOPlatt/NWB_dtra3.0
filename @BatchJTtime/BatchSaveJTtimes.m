@@ -1,7 +1,8 @@
-function SaveFile(app)
+function BatchSaveJTtimes(app)
 
-CprogramChoice(app)
-handles = app.drta_handles;
+
+
+handles = app.drta_data;
 
 if (isfield(handles.draq_d,'snip_samp'))
     try

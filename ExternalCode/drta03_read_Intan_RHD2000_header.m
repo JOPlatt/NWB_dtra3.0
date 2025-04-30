@@ -28,9 +28,18 @@ function [varargout]=drta03_read_Intan_RHD2000_header(app)
 % path = 'C:\Users\Reid\Documents\RHD2132\testing\';
 % d = dir([path '*.rhd']);
 % file = d(end).name;
-filename = app.drta_handles.p.fullName;
-which_protocol = app.drta_handles.p.which_protocol;
-handles = app.drta_handles;
+
+if app.Flags.RunningWhat == 2
+    filename = app.drta_handles.p.fullName;
+    which_protocol = app.drta_handles.p.which_protocol;
+    handles = app.drta_handles;
+else
+    filename = fullfile(app.drta_data.FileLoc,app.drta_data.FileName);
+    which_protocol = app.FileProcInfo(1,app.Flags.CurrentNum);
+    
+    handles.pre_dt = 6;
+    handles.trial_duration = 9;
+end
 
 
 tic;

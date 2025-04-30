@@ -41,3 +41,6 @@ textUpdate = 'Done, Data is ready to be viewed';
 ReadoutUpdate(app,textUpdate)
 app.Flags.fileLoaded = true;
 
+app.Savematfile_Button.Enable = "on";
+app.CreateNWBfile_Button.Enable = "on";
+

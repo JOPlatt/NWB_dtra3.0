@@ -3,6 +3,7 @@ function ReadoutUpdate(app,textUpdate)
 This function adds to the output display
 %}
 textUpdate = string(textUpdate);
+
 OTsize = length(app.OutputText);
 Text_size = length(textUpdate);
 if Text_size == 1
@@ -12,5 +13,6 @@ else
 end
 app.ProgressReadout.Value = app.OutputText;
 scroll(app.ProgressReadout,'bottom');
+
 
 pause(.1)

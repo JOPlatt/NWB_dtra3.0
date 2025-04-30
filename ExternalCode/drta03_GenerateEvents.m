@@ -1,9 +1,13 @@
-function drtaGenerateEvents(handles)
+function drta03_GenerateEvents(varargin)
 % hObject    handle to drtaThresholdPush (see GCBO)
 % handles    structure with handles and user data (see GUIDATA)
+app = varargin{1};
+handles = varargin{2};
+
 
 if isfield(handles,'drtachoices')
-    fprintf(1, ['Generating events...\n']);
+    textUpdate = sprintf('Generating events...');
+    ReadoutUpdate(app,textUpdate);
 end
 
 %Genterates the header information for events, etc saved in jt_times and drg files
@@ -50,9 +54,9 @@ switch handles.p.which_c_program
             
             
             handles.p.trialNo=trialNo;
-            data=drtaGetTraceData(handles);
+            data=drtaNWB_GetTraceData(handles);
             
-            digi = data(:,handles.draq_p.no_chans);
+            digi = data(:,end-1);
             shiftdat=bitand(digi,1+2+4+8+16+32);
             
             %For some reason the first trial is incorrect and has a 63 in
@@ -431,16 +435,18 @@ end
 all_licks=[];
 for trialNo=1:handles.draq_d.noTrials
     handles.p.trialNo=trialNo;
-    data=drtaGetTraceData(handles);
+    data=drtaNWB_GetTraceData(handles);
     if trialNo==1
-        all_licks=data(:,19)';
+        all_licks=data(:,end-5)';
     else
-        all_licks=[all_licks data(:,19)'];
+        all_licks=[all_licks data(:,end-5)'];
     end
 end
 lick_max=prctile(all_licks,99.9);
 lick_min=prctile(all_licks,0.01);
 lick_thr=lick_min+0.5*(lick_max-lick_min);
+
+NumCh = handles.draq_p.no_spike_ch;
 
 for trialNo=1:handles.draq_d.noTrials
 
@@ -453,7 +459,7 @@ for trialNo=1:handles.draq_d.noTrials
     tic
     
     handles.p.trialNo=trialNo;
-    [data]=drtaGetTraceData(handles);
+    [data]=drtaNWB_GetTraceData(handles);
     
     
     %For digging out data
@@ -462,12 +468,12 @@ for trialNo=1:handles.draq_d.noTrials
     
     if handles.draq_p.dgordra==1
         %This is a dra file
-        datavec=data(:,handles.draq_p.no_spike_ch);
+        datavec=data(:,end-1);
         shiftdata=bitshift( bitand(datavec,248), -2);
     else
         %These are dg or rhd files
-        digi = data(:,handles.draq_p.no_chans);
-        laser = data(:,handles.draq_p.no_chans-1);
+        digi = data(:,end-1);
+        laser = data(:,end-4);
         shiftdata=bitand(digi,2+4+8+16);
         shiftdatablock=bitand(digi,1+2+4+8+16);
         %shiftdatans=bitand(digi,1+2+4+8);
@@ -482,7 +488,7 @@ for trialNo=1:handles.draq_d.noTrials
     shift_dropc_nsampler(1:int64(handles.draq_p.ActualRate*handles.p.exclude_secs))=0;
     
     licks=[];
-    licks=data(:,19);
+    licks=data(:,end-5);
     
     %Exclude the trials that are off
     switch handles.p.which_c_program
@@ -490,7 +496,7 @@ for trialNo=1:handles.draq_d.noTrials
         case (1)
             %dropcnsampler
             if exclude_trial(trialNo)==1
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
             end
             
@@ -503,7 +509,7 @@ for trialNo=1:handles.draq_d.noTrials
             
             if firstFV<timeBefore
                 exclude_trial(trialNo)=1;
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
             end
             
@@ -512,7 +518,7 @@ for trialNo=1:handles.draq_d.noTrials
             
             if(pointsleft<1)
                 exclude_trial(trialNo)=1;
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
             end
             
@@ -523,7 +529,7 @@ for trialNo=1:handles.draq_d.noTrials
             %             firstFV=find(shiftdata30==6,1,'first')/handles.draq_p.ActualRate;
             %
             %             if firstFV<timeBefore
-            %                 handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+            %                 handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
             %                 handles.p.trial_allch_processed(trialNo)=0;
             %             end
             %
@@ -531,7 +537,7 @@ for trialNo=1:handles.draq_d.noTrials
             %             pointsleft=216000-(this_odor_on+3*handles.draq_p.ActualRate);
             %
             %             if(pointsleft<1)
-            %                 handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+            %                 handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
             %                 handles.p.trial_allch_processed(trialNo)=0;
             %             end
             
@@ -566,11 +572,11 @@ for trialNo=1:handles.draq_d.noTrials
                 timeBefore=str2double(get(handles.timeBeforeFV,'String'));
                 firstLightOn=find(digidata>(min_y+(max_y-min_y)/2),1,'first')/handles.draq_p.ActualRate;
                 if firstLightOn<timeBefore
-                    handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                    handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                     handles.p.trial_allch_processed(trialNo)=0;
                 end
             else
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
             end
             
@@ -582,7 +588,7 @@ for trialNo=1:handles.draq_d.noTrials
             %             firstFV=find(shift_dropc_nsampler==1,1,'first')/handles.draq_p.ActualRate;
             %
             %             if firstFV<timeBefore
-            %                 handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+            %                 handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
             %                 handles.p.trial_allch_processed(trialNo)=0;
             %             end
             %
@@ -590,7 +596,7 @@ for trialNo=1:handles.draq_d.noTrials
             %             pointsleft=216000-(this_odor_on+3*handles.draq_p.ActualRate);
             %
             %             if(pointsleft<1)
-            %                 handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+            %                 handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
             %                 handles.p.trial_allch_processed(trialNo)=0;
             %                 trialNo
             %                 pointsleft
@@ -696,7 +702,7 @@ for trialNo=1:handles.draq_d.noTrials
                         %accompanying t_start and odor_on
                         
                         %First exclude this weird trial
-                        handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                        handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                         handles.p.trial_allch_processed(trialNo)=0;
                         
                         %Then add it to the list
@@ -730,7 +736,7 @@ for trialNo=1:handles.draq_d.noTrials
                             %accompanying t_start and odor_on
                             
                             %First exclude this weird trial
-                            handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                            handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                             handles.p.trial_allch_processed(trialNo)=0;
                             
                             %Then add it to the list
@@ -976,7 +982,7 @@ for trialNo=1:handles.draq_d.noTrials
                 %accompanying t_start and odor_on
                 
                 %First exclude this weird trial
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
                 
                 %Then add this one
@@ -1000,7 +1006,7 @@ for trialNo=1:handles.draq_d.noTrials
                 %accompanying t_start and odor_on
                 
                 %First exclude this weird trial
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
                 
                 %Then add this one
@@ -1219,7 +1225,7 @@ for trialNo=1:handles.draq_d.noTrials
                 %accompanying t_start and odor_on
                 
                 %First exclude this weird trial
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
                 
                 %Then add this one
@@ -1244,7 +1250,7 @@ for trialNo=1:handles.draq_d.noTrials
                 %accompanying t_start and odor_on
                 
                 %First exclude this weird trial
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
                 
                 %Then add this one
@@ -1355,7 +1361,7 @@ for trialNo=1:handles.draq_d.noTrials
                 %accompanying t_start and odor_on
                 
                 %First exclude this weird trial
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
                 
                 %Then add this one
@@ -1379,7 +1385,7 @@ for trialNo=1:handles.draq_d.noTrials
                 %accompanying t_start and odor_on
                 
                 %First exclude this weird trial
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
                 
                 %Then add this one
@@ -1560,7 +1566,7 @@ for trialNo=1:handles.draq_d.noTrials
                 %accompanying t_start and odor_on
                 
                 %First exclude this weird trial
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
                 
                 %Then add this one
@@ -1677,7 +1683,7 @@ for trialNo=1:handles.draq_d.noTrials
                 %accompanying t_start and odor_on
                 
                 %First exclude this weird trial
-                handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                 handles.p.trial_allch_processed(trialNo)=0;
                 
                 %Then add this one
@@ -1724,7 +1730,7 @@ for trialNo=1:handles.draq_d.noTrials
                         %accompanying t_start and odor_on
                         
                         %First exclude this weird trial
-                        handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                        handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                         handles.p.trial_allch_processed(trialNo)=0;
                         
                         %Then add it to the list as a short
@@ -1755,7 +1761,7 @@ for trialNo=1:handles.draq_d.noTrials
                             %accompanying t_start followed by an odor_on
                             
                             %First exclude this weird trial
-                            handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                            handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                             handles.p.trial_allch_processed(trialNo)=0;
                             
                             %Then add it to the list as a short
@@ -2053,7 +2059,7 @@ for trialNo=1:handles.draq_d.noTrials
                         %accompanying t_start and odor_on
                         
                         %First exclude this weird trial
-                        handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                        handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                         handles.p.trial_allch_processed(trialNo)=0;
                         
                         %Then add it to the list
@@ -2088,7 +2094,7 @@ for trialNo=1:handles.draq_d.noTrials
                         %accompanying t_start and odor_on
                         
                         %First exclude this weird trial
-                        handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                        handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                         handles.p.trial_allch_processed(trialNo)=0;
                         
                         %Then add it to the list
@@ -2553,7 +2559,7 @@ for trialNo=1:handles.draq_d.noTrials
                         %accompanying t_start and odor_on
                         
                         %First exclude this weird trial
-                        handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                        handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                         handles.p.trial_allch_processed(trialNo)=0;
                         
                         %Then add it to the list
@@ -2599,7 +2605,7 @@ for trialNo=1:handles.draq_d.noTrials
                             %accompanying t_start and odor_on
                             
                             %First exclude this weird trial
-                            handles.p.trial_ch_processed(1:16,trialNo)=zeros(16,1);
+                            handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
                             handles.p.trial_allch_processed(trialNo)=0;
                             
                             %Then add it to the list
@@ -2971,9 +2977,12 @@ switch handles.p.which_c_program
         end
 
 
-        fprintf(1, ['Delta odor 1 = %d sec \n'], mean(handles.draq_d.delta_ii_odor1)/handles.draq_p.ActualRate);
-        fprintf(1, ['Delta odor 12 = %d sec \n'], mean(handles.draq_d.delta_ii_odor12)/handles.draq_p.ActualRate);
-        fprintf(1, ['Delta odor 2 = %d sec \n'], mean(handles.draq_d.delta_ii_odor2)/handles.draq_p.ActualRate);
+        textUpdate = sprintf('Delta odor 1 = %d sec', mean(handles.draq_d.delta_ii_odor1)/handles.draq_p.ActualRate);
+        ReadoutUpdate(app,textUpdate);
+        textUpdate = sprintf('Delta odor 12 = %d sec', mean(handles.draq_d.delta_ii_odor12)/handles.draq_p.ActualRate);
+        ReadoutUpdate(app,textUpdate);
+        textUpdate = spirntf('Delta odor 2 = %d sec', mean(handles.draq_d.delta_ii_odor2)/handles.draq_p.ActualRate);
+        ReadoutUpdate(app,textUpdate);
     case (15)
         %Continuous
         handles.draq_d.blocks(1,1)=min(handles.draq_d.events)-0.00001;
@@ -3008,7 +3017,7 @@ try
 catch
 end
 
-handles=drtaExcludeBadLFP(handles);
+handles=drta03_ExcludeBadLFP(app,handles);
 
 %Now update the .mat file
 data=handles.draq_d;
@@ -3027,7 +3036,10 @@ else
 end
 
 if isfield(handles,'drtachoices')
-    fprintf(1, ['\nSaved .mat for ' handles.choicesFileName '\n\n']);
+    textUpdate = spirntf('Saved .mat for %s', handles.choicesFileName);
+    ReadoutUpdate(app,textUpdate);
+    textUpdate = spirntf(' ');
+    ReadoutUpdate(app,textUpdate);
 else
     switch handles.p.which_c_program
         
@@ -3164,7 +3176,8 @@ else
 end
 
 if isfield(handles,'drtachoices')
-    fprintf(1, ['\nSaved jt_times file for ' handles.choicesFileName '\n\n']);
+    textUpdate = spirntf('Saved jt_times file for %s', handles.choicesFileName);
+    ReadoutUpdate(app,textUpdate);
 else
     msgbox('Saved jt_times file');
 end
