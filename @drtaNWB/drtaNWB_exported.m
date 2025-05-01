@@ -6,6 +6,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         TabGroup                    matlab.ui.container.TabGroup
         drta_loadTab                matlab.ui.container.Tab
         GridLayoutLoad              matlab.ui.container.GridLayout
+        CreateNWBfile_Button        matlab.ui.control.Button
         MetaDataProtocolLabel       matlab.ui.control.Label
         DisplayProtocolLabel        matlab.ui.control.Label
         Cprogrom_DropDown           matlab.ui.control.DropDown
@@ -119,13 +120,12 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         open_rhd_Callback(app) % load rhd file
         drtaOpenDG_Callback(app) % load dg file
         VarUpdate(app,Vname,Vupdate) % updates drta variable
-        ReadoutUpdate(app,textUpdate) % adds text to output window on GUI
         actualTrialNo = setTrialNo(app,trialNo) % sets the current trial number
         drtaNWB_figureControl(app) % updates the plots
         ElectrodCheckboxCreate(app) % creating electord checkboxes
         AppTypeSwitchStation(app) % switch stations for file type
         drta03_SetPreferences(app) % setting drta specific preferences
-        [varargout] = drta03_read_Intan_RHD2000_header(app) % updated function for drta 3.0
+        % [varargout] = drta03_read_Intan_RHD2000_header(app) % updated function for drta 3.0
         ChooseFileToLoad(app) % choosing which file will be loaded
         LoadingChosenFile(app) % loading the file that was chosen
         ExtraImageOptions(app)
@@ -135,7 +135,6 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         TrialNumChange(app,event) % changes the trial number
         LFPplotChange(app,event) % handles user input changes for LFP plot
         SaveFile(app) % saving output
-        drta03_GenerateMClust(app) % runs MClust and saves output
         ShowingDiffCheckbox(app) % creates the structure for dropdown obj
         PlotStatusUpdate(app,textUpdate,WhichOne) % status updates for LFP plots
         FigureSaving(app,varargin) % saving figures
@@ -176,6 +175,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.drta_handles.w.drtaThresholdSnips=0;
             %
             drta03_SetPreferences(app)
+            app.Flags.RunningWhat = 2;
 
 
 
@@ -261,7 +261,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             textUpdate = "Generating MClust files, Please wait.";
             PlotStatusUpdate(app,textUpdate,1)
             app.MClust_Button.Enable = "off";
-            drtaGenerateMClust(app.drta_handles);
+            drta03_GenerateMClust(app);
             textUpdate = "MClust files saved";
             PlotStatusUpdate(app,textUpdate,1)
         end
@@ -375,6 +375,11 @@ classdef drtaNWB_exported < matlab.apps.AppBase
                 app.drta_handles.p.which_channel = str2double(value);
             end
         end
+
+        % Button pushed function: CreateNWBfile_Button
+        function CreateNWBfile(app, event)
+            NWBmakefile(app);
+        end
     end
 
     % Component initialization
@@ -400,7 +405,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create GridLayoutLoad
             app.GridLayoutLoad = uigridlayout(app.drta_loadTab);
             app.GridLayoutLoad.ColumnWidth = {20, 20, 120, 40, 95, 40, 100, 400, '1x'};
-            app.GridLayoutLoad.RowHeight = {20, 50, 10, 40, 15, 40, 20, 30, 20, 30, 20, 30, 15, 15, 15, 15, 15, '1x', 20};
+            app.GridLayoutLoad.RowHeight = {20, 50, 10, 40, 15, 40, 20, 30, 20, 30, 20, 30, 15, 15, 15, 15, 15, 30, '1x', 20};
 
             % Create SelectFile_Button
             app.SelectFile_Button = uibutton(app.GridLayoutLoad, 'state');
@@ -498,9 +503,10 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create Savematfile_Button
             app.Savematfile_Button = uibutton(app.GridLayoutLoad, 'push');
             app.Savematfile_Button.ButtonPushedFcn = createCallbackFcn(app, @Savematfile_ButtonPushed, true);
+            app.Savematfile_Button.Enable = 'off';
             app.Savematfile_Button.Layout.Row = [16 17];
             app.Savematfile_Button.Layout.Column = [5 6];
-            app.Savematfile_Button.Text = 'Save mat file';
+            app.Savematfile_Button.Text = 'Save jt_Time file';
 
             % Create Cprogrom_DropDown
             app.Cprogrom_DropDown = uidropdown(app.GridLayoutLoad);
@@ -527,6 +533,15 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.MetaDataProtocolLabel.Layout.Row = 7;
             app.MetaDataProtocolLabel.Layout.Column = [5 6];
             app.MetaDataProtocolLabel.Text = 'Meta Data Protocol';
+
+            % Create CreateNWBfile_Button
+            app.CreateNWBfile_Button = uibutton(app.GridLayoutLoad, 'push');
+            app.CreateNWBfile_Button.ButtonPushedFcn = createCallbackFcn(app, @CreateNWBfile, true);
+            app.CreateNWBfile_Button.Enable = 'off';
+            app.CreateNWBfile_Button.Visible = 'off';
+            app.CreateNWBfile_Button.Layout.Row = 18;
+            app.CreateNWBfile_Button.Layout.Column = 3;
+            app.CreateNWBfile_Button.Text = 'Create NWB file';
 
             % Create Browse_TracesTab
             app.Browse_TracesTab = uitab(app.TabGroup);

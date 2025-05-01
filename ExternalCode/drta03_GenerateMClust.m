@@ -11,7 +11,9 @@ samp_bef=16;
 samp_aft=16;
 no_spikes=0;
 
-for tets=1:4
+SetsCount = noch/4;
+
+for tets=1:SetsCount
 
     %For each tetrode get the spikes and save them
     textUpdate = append('Starting tetrode ', num2str(tets));
@@ -83,7 +85,7 @@ for tets=1:4
 
         jj=17;
 
-        while jj<szdata1(1)-32
+        while jj<szdata1(1)-39
             %Go through the time and find spikes
 
             %Is there a spike?
@@ -123,10 +125,15 @@ for tets=1:4
         textUpdate = append('Data processed in ',num2str(toc));
         ReadoutUpdate(app,textUpdate)
     end
-    if isfield(wv1,'ts')
-        save([app.drta_handles.p.fullName(1:end-3) 'tet' num2str(tets) '.mat'], 'wv1');
-        wv1=rmfield(wv1,'spikes');
-        wv1=rmfield(wv1,'ts');
+    if no_spikes > 0
+        if isfield(wv1,'ts')
+            save([app.drta_handles.p.fullName(1:end-3) 'tet' num2str(tets) '.mat'], 'wv1');
+            wv1=rmfield(wv1,'spikes');
+            wv1=rmfield(wv1,'ts');
+        end
+    else
+        textUpdate = 'MClust did not find any spikes';
+        ReadoutUpdate(app,textUpdate)
     end
 
 end 

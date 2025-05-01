@@ -3101,10 +3101,10 @@ end
 
 if handles.draq_p.dgordra==2
     %This is a dg file
-    jt_times_file=[handles.p.PathName,'jt_times_',handles.p.FileName(1:end-2),'mat'];
+    jt_times_file= fullfile(handles.p.PathName,['jt_times_',handles.p.FileName(1:end-2),'mat']);
 else
     %dra or rhd
-    jt_times_file=[handles.p.PathName,'jt_times_',handles.p.FileName(1:end-3),'mat'];
+    jt_times_file=fullfile(handles.p.PathName,['jt_times_',handles.p.FileName(1:end-3),'mat']);
 end
 
 if isfield(handles,'drtachoices')

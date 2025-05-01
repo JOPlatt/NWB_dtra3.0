@@ -31,3 +31,4 @@ app.LoadingProcess_DropDown.Items = {'...', ...
 app.Flags.LoadMethod = 1;
 app.Flags.OutputType = 2;
 app.OutputText = "Starting Batch processing";
+app.Flags.RunningWhat = 3;
