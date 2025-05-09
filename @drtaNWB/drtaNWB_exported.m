@@ -70,6 +70,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         ControlsLabel               matlab.ui.control.Label
         DigitalTracesLabel          matlab.ui.control.Label
         DigitalControls_Grid        matlab.ui.container.GridLayout
+        PID_CheckBox                matlab.ui.control.CheckBox
+        ShowPIDfigures_Label        matlab.ui.control.Label
         StatusDiff_TextArea         matlab.ui.control.TextArea
         Trace_ylimtsMax_EditField   matlab.ui.control.NumericEditField
         Trace_ylimitsMin_EditField  matlab.ui.control.NumericEditField
@@ -94,6 +96,18 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         In_Port_Plot                matlab.ui.control.UIAxes
         Diode_Plot                  matlab.ui.control.UIAxes
         Digital_Plot                matlab.ui.control.UIAxes
+        PIDTab                      matlab.ui.container.Tab
+        PIDmain_GridLayout          matlab.ui.container.GridLayout
+        Panel                       matlab.ui.container.Panel
+        PIDcontrols_GridLayout      matlab.ui.container.GridLayout
+        PIDUpdatePlotButton         matlab.ui.control.Button
+        PIDupdate_TextArea          matlab.ui.control.TextArea
+        TrialNumberLabel            matlab.ui.control.Label
+        PIDtrial_EditField          matlab.ui.control.NumericEditField
+        PIDnextTrial_Button         matlab.ui.control.Button
+        PIDpriorTrial_Button        matlab.ui.control.Button
+        PIDendSet_UIAxes            matlab.ui.control.UIAxes
+        PIDendMinusOne_UIAxes       matlab.ui.control.UIAxes
     end
 
 
@@ -102,8 +116,9 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         drta_handles = struct(); % Description
         drta_Plot % Description
         OutputText % This is the text that is displayed on the GUI
-        LFPOutputText = string(); % text that gives status updates for the LFP plots
+        LFPOutputText = string; % text that gives status updates for the LFP plots
         DiffOutputText = string; % text that give status updates for diff plots
+        PIDOutputText = string; % text that give status updates for PID plots
         FlagAlpha %  Flag is used to indicate the first call to readout
 
         %         outputTextDisplay % Houses the text for the files that are created
@@ -239,8 +254,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             %             drtaPlotBrowseTraces(app.drta_handles);
         end
 
-        % Callback function: Tnum_Larrow, Tnum_Rarrow, Tnum_amt, 
-        % ...and 2 other components
+        % Callback function: PIDnextTrial_Button, PIDpriorTrial_Button, 
+        % ...and 7 other components
         function TrialNum_ButtonPushed(app, event)
             TrialNumChange(app,event)
             textUpdate = ['Updating plot to show tiral ' ...
@@ -380,6 +395,26 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         function CreateNWBfile(app, event)
             NWBmakefile(app);
         end
+
+        % Value changed function: PID_CheckBox
+        function PID_CheckBoxValueChanged(app, event)
+            if app.PID_CheckBox.Value == 1
+                app.PIDmain_GridLayout.Visible = "on";
+                app.PIDtrial_EditField.Value = app.drta_handles.p.trialNo;
+            else
+                app.PIDmain_GridLayout.Visible = "off";
+            end
+
+        end
+
+        % Callback function: PIDTab, PIDUpdatePlotButton
+        function PIDTab_update(app, event)
+            textUpdate = "Updating Plot, Please wait.";
+            PlotStatusUpdate(app,textUpdate,3);
+            GeneratePIDfigures(app);
+            textUpdate = "Plot Updated";
+            PlotStatusUpdate(app,textUpdate,3);
+        end
     end
 
     % Component initialization
@@ -387,6 +422,9 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
         % Create UIFigure and components
         function createComponents(app)
+
+            % Get the file path for locating images
+            pathToMLAPP = fileparts(mfilename('fullpath'));
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
@@ -899,7 +937,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create DigitalControls_Grid
             app.DigitalControls_Grid = uigridlayout(app.DigitalMain_GridLayout);
             app.DigitalControls_Grid.ColumnWidth = {100, 40, 70, 70, '1x'};
-            app.DigitalControls_Grid.RowHeight = {'1x', 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 40, '1x'};
+            app.DigitalControls_Grid.RowHeight = {'1x', 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 21, 10, 40, '1x'};
             app.DigitalControls_Grid.ColumnSpacing = 8;
             app.DigitalControls_Grid.RowSpacing = 2;
             app.DigitalControls_Grid.Padding = [15 10 10 10];
@@ -911,14 +949,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.ExcLicks_CheckBox.Enable = 'off';
             app.ExcLicks_CheckBox.Text = '';
             app.ExcLicks_CheckBox.FontName = 'Times New Roman';
-            app.ExcLicks_CheckBox.Layout.Row = 4;
+            app.ExcLicks_CheckBox.Layout.Row = 6;
             app.ExcLicks_CheckBox.Layout.Column = 2;
 
             % Create ExcLicks_Label
             app.ExcLicks_Label = uilabel(app.DigitalControls_Grid);
             app.ExcLicks_Label.HorizontalAlignment = 'center';
             app.ExcLicks_Label.FontName = 'Times New Roman';
-            app.ExcLicks_Label.Layout.Row = 4;
+            app.ExcLicks_Label.Layout.Row = 6;
             app.ExcLicks_Label.Layout.Column = 1;
             app.ExcLicks_Label.Text = 'Exclude Licks';
 
@@ -926,38 +964,41 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.TrialNoDigit_Label = uilabel(app.DigitalControls_Grid);
             app.TrialNoDigit_Label.HorizontalAlignment = 'center';
             app.TrialNoDigit_Label.FontName = 'Times New Roman';
-            app.TrialNoDigit_Label.Layout.Row = 6;
+            app.TrialNoDigit_Label.Layout.Row = 8;
             app.TrialNoDigit_Label.Layout.Column = 1;
             app.TrialNoDigit_Label.Text = 'Trial No.';
 
             % Create TrialNoDigit_EditField
             app.TrialNoDigit_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
+            app.TrialNoDigit_EditField.ValueChangedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
             app.TrialNoDigit_EditField.Tag = 'DigTnumField';
             app.TrialNoDigit_EditField.HorizontalAlignment = 'center';
             app.TrialNoDigit_EditField.FontName = 'Times New Roman';
-            app.TrialNoDigit_EditField.Layout.Row = 6;
+            app.TrialNoDigit_EditField.Layout.Row = 8;
             app.TrialNoDigit_EditField.Layout.Column = 2;
 
             % Create TrialNoDigitPrior_Button
             app.TrialNoDigitPrior_Button = uibutton(app.DigitalControls_Grid, 'push');
             app.TrialNoDigitPrior_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
             app.TrialNoDigitPrior_Button.Tag = 'TnumMinus';
-            app.TrialNoDigitPrior_Button.Layout.Row = 6;
+            app.TrialNoDigitPrior_Button.Icon = fullfile(pathToMLAPP, 'Images', 'leftArrow.png');
+            app.TrialNoDigitPrior_Button.Layout.Row = 8;
             app.TrialNoDigitPrior_Button.Layout.Column = 3;
-            app.TrialNoDigitPrior_Button.Text = '<--';
+            app.TrialNoDigitPrior_Button.Text = '';
 
             % Create TrialNoDigitNext_Button
             app.TrialNoDigitNext_Button = uibutton(app.DigitalControls_Grid, 'push');
             app.TrialNoDigitNext_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
             app.TrialNoDigitNext_Button.Tag = 'TnumPlus';
-            app.TrialNoDigitNext_Button.Layout.Row = 6;
+            app.TrialNoDigitNext_Button.Icon = fullfile(pathToMLAPP, 'Images', 'rightArrow.png');
+            app.TrialNoDigitNext_Button.Layout.Row = 8;
             app.TrialNoDigitNext_Button.Layout.Column = 4;
-            app.TrialNoDigitNext_Button.Text = '-->';
+            app.TrialNoDigitNext_Button.Text = '';
 
             % Create IntervalSecDigit_Label
             app.IntervalSecDigit_Label = uilabel(app.DigitalControls_Grid);
             app.IntervalSecDigit_Label.HorizontalAlignment = 'center';
-            app.IntervalSecDigit_Label.Layout.Row = 8;
+            app.IntervalSecDigit_Label.Layout.Row = 10;
             app.IntervalSecDigit_Label.Layout.Column = 1;
             app.IntervalSecDigit_Label.Text = 'Interval (sec):';
 
@@ -965,14 +1006,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.IntervalSecDigit_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
             app.IntervalSecDigit_EditField.Tag = 'InterDigi';
             app.IntervalSecDigit_EditField.HorizontalAlignment = 'center';
-            app.IntervalSecDigit_EditField.Layout.Row = 8;
+            app.IntervalSecDigit_EditField.Layout.Row = 10;
             app.IntervalSecDigit_EditField.Layout.Column = 2;
 
             % Create UpdateDigitPlots_Button
             app.UpdateDigitPlots_Button = uibutton(app.DigitalControls_Grid, 'push');
             app.UpdateDigitPlots_Button.ButtonPushedFcn = createCallbackFcn(app, @UpdateDigitPlots_ButtonPushed, true);
             app.UpdateDigitPlots_Button.FontName = 'Times New Roman';
-            app.UpdateDigitPlots_Button.Layout.Row = 14;
+            app.UpdateDigitPlots_Button.Layout.Row = 16;
             app.UpdateDigitPlots_Button.Layout.Column = [1 2];
             app.UpdateDigitPlots_Button.Text = 'Update Digital Plots';
 
@@ -980,28 +1021,28 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Shiftdropcbitand_Label = uilabel(app.DigitalControls_Grid);
             app.Shiftdropcbitand_Label.HorizontalAlignment = 'center';
             app.Shiftdropcbitand_Label.FontName = 'Times New Roman';
-            app.Shiftdropcbitand_Label.Layout.Row = 12;
+            app.Shiftdropcbitand_Label.Layout.Row = 14;
             app.Shiftdropcbitand_Label.Layout.Column = 1;
             app.Shiftdropcbitand_Label.Text = 'Shift dropc bitand';
 
             % Create ShiftBitand_EditField
             app.ShiftBitand_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
             app.ShiftBitand_EditField.HorizontalAlignment = 'center';
-            app.ShiftBitand_EditField.Layout.Row = 12;
+            app.ShiftBitand_EditField.Layout.Row = 14;
             app.ShiftBitand_EditField.Layout.Column = 2;
 
             % Create Shiftdatabitand_Label
             app.Shiftdatabitand_Label = uilabel(app.DigitalControls_Grid);
             app.Shiftdatabitand_Label.HorizontalAlignment = 'center';
             app.Shiftdatabitand_Label.FontName = 'Times New Roman';
-            app.Shiftdatabitand_Label.Layout.Row = 10;
+            app.Shiftdatabitand_Label.Layout.Row = 12;
             app.Shiftdatabitand_Label.Layout.Column = 1;
             app.Shiftdatabitand_Label.Text = 'Shift data bitand';
 
             % Create ShiftDataBitand_EditField
             app.ShiftDataBitand_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
             app.ShiftDataBitand_EditField.HorizontalAlignment = 'center';
-            app.ShiftDataBitand_EditField.Layout.Row = 10;
+            app.ShiftDataBitand_EditField.Layout.Row = 12;
             app.ShiftDataBitand_EditField.Layout.Column = 2;
 
             % Create Trace_ylimits_Label
@@ -1027,8 +1068,23 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create StatusDiff_TextArea
             app.StatusDiff_TextArea = uitextarea(app.DigitalControls_Grid);
-            app.StatusDiff_TextArea.Layout.Row = 16;
+            app.StatusDiff_TextArea.Layout.Row = 18;
             app.StatusDiff_TextArea.Layout.Column = [1 3];
+
+            % Create ShowPIDfigures_Label
+            app.ShowPIDfigures_Label = uilabel(app.DigitalControls_Grid);
+            app.ShowPIDfigures_Label.HorizontalAlignment = 'center';
+            app.ShowPIDfigures_Label.FontName = 'Arial';
+            app.ShowPIDfigures_Label.Layout.Row = 4;
+            app.ShowPIDfigures_Label.Layout.Column = 1;
+            app.ShowPIDfigures_Label.Text = 'Show PID figures';
+
+            % Create PID_CheckBox
+            app.PID_CheckBox = uicheckbox(app.DigitalControls_Grid);
+            app.PID_CheckBox.ValueChangedFcn = createCallbackFcn(app, @PID_CheckBoxValueChanged, true);
+            app.PID_CheckBox.Text = '';
+            app.PID_CheckBox.Layout.Row = 4;
+            app.PID_CheckBox.Layout.Column = 2;
 
             % Create DigitalTracesLabel
             app.DigitalTracesLabel = uilabel(app.DigitalMain_GridLayout);
@@ -1045,6 +1101,89 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.ControlsLabel.Layout.Row = 1;
             app.ControlsLabel.Layout.Column = 2;
             app.ControlsLabel.Text = 'Controls';
+
+            % Create PIDTab
+            app.PIDTab = uitab(app.TabGroup);
+            app.PIDTab.Title = 'PID';
+            app.PIDTab.ButtonDownFcn = createCallbackFcn(app, @PIDTab_update, true);
+
+            % Create PIDmain_GridLayout
+            app.PIDmain_GridLayout = uigridlayout(app.PIDTab);
+            app.PIDmain_GridLayout.RowHeight = {120, '1x'};
+
+            % Create PIDendMinusOne_UIAxes
+            app.PIDendMinusOne_UIAxes = uiaxes(app.PIDmain_GridLayout);
+            xlabel(app.PIDendMinusOne_UIAxes, 'X')
+            ylabel(app.PIDendMinusOne_UIAxes, 'Y')
+            zlabel(app.PIDendMinusOne_UIAxes, 'Z')
+            app.PIDendMinusOne_UIAxes.Layout.Row = 2;
+            app.PIDendMinusOne_UIAxes.Layout.Column = 1;
+
+            % Create PIDendSet_UIAxes
+            app.PIDendSet_UIAxes = uiaxes(app.PIDmain_GridLayout);
+            xlabel(app.PIDendSet_UIAxes, 'X')
+            ylabel(app.PIDendSet_UIAxes, 'Y')
+            zlabel(app.PIDendSet_UIAxes, 'Z')
+            app.PIDendSet_UIAxes.Layout.Row = 2;
+            app.PIDendSet_UIAxes.Layout.Column = 2;
+
+            % Create Panel
+            app.Panel = uipanel(app.PIDmain_GridLayout);
+            app.Panel.Layout.Row = 1;
+            app.Panel.Layout.Column = [1 2];
+            app.Panel.FontName = 'Arial';
+
+            % Create PIDcontrols_GridLayout
+            app.PIDcontrols_GridLayout = uigridlayout(app.Panel);
+            app.PIDcontrols_GridLayout.ColumnWidth = {100, 70, 40, 70, 10, 210, '1x'};
+            app.PIDcontrols_GridLayout.RowHeight = {26, 25, '1x'};
+
+            % Create PIDpriorTrial_Button
+            app.PIDpriorTrial_Button = uibutton(app.PIDcontrols_GridLayout, 'push');
+            app.PIDpriorTrial_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
+            app.PIDpriorTrial_Button.Tag = 'TnumMinus';
+            app.PIDpriorTrial_Button.Icon = fullfile(pathToMLAPP, 'Images', 'leftArrow.png');
+            app.PIDpriorTrial_Button.Layout.Row = 1;
+            app.PIDpriorTrial_Button.Layout.Column = 2;
+            app.PIDpriorTrial_Button.Text = '';
+
+            % Create PIDnextTrial_Button
+            app.PIDnextTrial_Button = uibutton(app.PIDcontrols_GridLayout, 'push');
+            app.PIDnextTrial_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
+            app.PIDnextTrial_Button.Tag = 'TnumPlus';
+            app.PIDnextTrial_Button.Icon = fullfile(pathToMLAPP, 'Images', 'rightArrow.png');
+            app.PIDnextTrial_Button.Layout.Row = 1;
+            app.PIDnextTrial_Button.Layout.Column = 4;
+            app.PIDnextTrial_Button.Text = '';
+
+            % Create PIDtrial_EditField
+            app.PIDtrial_EditField = uieditfield(app.PIDcontrols_GridLayout, 'numeric');
+            app.PIDtrial_EditField.ValueChangedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
+            app.PIDtrial_EditField.Tag = 'PIDnumField';
+            app.PIDtrial_EditField.HorizontalAlignment = 'center';
+            app.PIDtrial_EditField.FontName = 'Arial';
+            app.PIDtrial_EditField.Layout.Row = 1;
+            app.PIDtrial_EditField.Layout.Column = 3;
+
+            % Create TrialNumberLabel
+            app.TrialNumberLabel = uilabel(app.PIDcontrols_GridLayout);
+            app.TrialNumberLabel.HorizontalAlignment = 'center';
+            app.TrialNumberLabel.FontName = 'Arial';
+            app.TrialNumberLabel.Layout.Row = 1;
+            app.TrialNumberLabel.Layout.Column = 1;
+            app.TrialNumberLabel.Text = 'Trial Number:';
+
+            % Create PIDupdate_TextArea
+            app.PIDupdate_TextArea = uitextarea(app.PIDcontrols_GridLayout);
+            app.PIDupdate_TextArea.Layout.Row = [1 2];
+            app.PIDupdate_TextArea.Layout.Column = 6;
+
+            % Create PIDUpdatePlotButton
+            app.PIDUpdatePlotButton = uibutton(app.PIDcontrols_GridLayout, 'push');
+            app.PIDUpdatePlotButton.ButtonPushedFcn = createCallbackFcn(app, @PIDTab_update, true);
+            app.PIDUpdatePlotButton.Layout.Row = 2;
+            app.PIDUpdatePlotButton.Layout.Column = 1;
+            app.PIDUpdatePlotButton.Text = 'Update Plot';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

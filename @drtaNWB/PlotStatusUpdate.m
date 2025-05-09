@@ -24,5 +24,14 @@ elseif WhichOne == 2
     end
     app.StatusDiff_TextArea.Value = app.DiffOutputText;
     scroll(app.StatusDiff_TextArea,'bottom');
+elseif WhichOne == 3
+    OTsize = length(app.PIDOutputText);
+    if Text_size == 1
+        app.PIDOutputText((OTsize(1)+1),1) = textUpdate;
+    else
+        app.PIDOutputText((OTsize(1)+1):(OTsize(1)+Text_size),1) = textUpdate;
+    end
+    app.PIDupdate_TextArea.Value = app.PIDOutputText;
+    scroll(app.PIDupdate_TextArea,'bottom');
 end
 pause(0.1);
