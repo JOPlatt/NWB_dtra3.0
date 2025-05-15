@@ -68,6 +68,9 @@ app.drta_handles.draq_p.acquire_display_start=0;
 app.drta_handles.draq_p.inp_max=10;
 % setting GUI values
 app.trial_amt.Value = 9;
+app.Interval_amt.Value = 9;
+app.IntervalSecDigit_EditField.Value = 9;
+app.AnalogInterval_EditField.Value = 9;
 app.dt_amt.Value = 6;
 % setting protocol options
 app.protocolDropDown.Items = ...
@@ -82,3 +85,4 @@ app.protocolDropDown.Items = ...
     'laser (Schoppa)'};
 
 app.Flags.OutputType = 1;
+app.Flags.ShowAnalog = 0;

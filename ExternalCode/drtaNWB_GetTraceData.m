@@ -117,9 +117,6 @@ if contains(handles.drtaWhichFile,'rhd')
         %         data_this_trial(:,1:16)=amplifier_data(9:24,:)';
         % end
 
-
-        
-        
         %Setup the output as used by drta
         % data_this_trial=zeros(length(digital_input),22);
         % data_this_trial=zeros(szad(2),(szad(1)+szadc(1)+2));

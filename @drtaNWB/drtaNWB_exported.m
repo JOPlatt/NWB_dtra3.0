@@ -26,6 +26,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         SelectFile_Button           matlab.ui.control.StateButton
         Browse_TracesTab            matlab.ui.container.Tab
         GridLayoutTraces            matlab.ui.container.GridLayout
+        SaveChennels_Button         matlab.ui.control.Button
         Filterorder_EditField       matlab.ui.control.NumericEditField
         Filterorder_Label           matlab.ui.control.Label
         StatusLFP_TextArea          matlab.ui.control.TextArea
@@ -100,14 +101,16 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         PIDmain_GridLayout          matlab.ui.container.GridLayout
         Panel                       matlab.ui.container.Panel
         PIDcontrols_GridLayout      matlab.ui.container.GridLayout
+        AnalogInterval_EditField    matlab.ui.control.NumericEditField
+        AnalogInterval_Label        matlab.ui.control.Label
         PIDUpdatePlotButton         matlab.ui.control.Button
         PIDupdate_TextArea          matlab.ui.control.TextArea
         TrialNumberLabel            matlab.ui.control.Label
         PIDtrial_EditField          matlab.ui.control.NumericEditField
         PIDnextTrial_Button         matlab.ui.control.Button
         PIDpriorTrial_Button        matlab.ui.control.Button
-        PIDendSet_UIAxes            matlab.ui.control.UIAxes
         PIDendMinusOne_UIAxes       matlab.ui.control.UIAxes
+        PIDendSet_UIAxes            matlab.ui.control.UIAxes
     end
 
 
@@ -258,17 +261,24 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         % ...and 7 other components
         function TrialNum_ButtonPushed(app, event)
             TrialNumChange(app,event)
-            textUpdate = ['Updating plot to show tiral ' ...
+            textUpdate = ['Updating plot to show tiral ', ...
                 num2str(app.TrialNoDigit_EditField.Value)];
             PlotStatusUpdate(app,textUpdate,1)
             PlotStatusUpdate(app,textUpdate,2)
+            PlotStatusUpdate(app,textUpdate,3)
+            textUpdate = sprintf('Please wait ');
+            PlotStatusUpdate(app,textUpdate,1)
+            PlotStatusUpdate(app,textUpdate,2)
+            PlotStatusUpdate(app,textUpdate,3)
             VisualChoice(app);
             drtaNWB_figureControl(app);
             drta03_ShowDigital(app);
+            GeneratePIDfigures(app);
             textUpdate = ['Plot updated, now showing tiral ' ...
                 num2str(app.TrialNoDigit_EditField.Value)];
             PlotStatusUpdate(app,textUpdate,1)
             PlotStatusUpdate(app,textUpdate,2)
+            PlotStatusUpdate(app,textUpdate,3)
         end
 
         % Value changed function: MClust_Button
@@ -313,6 +323,10 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             GUI for user interaction.
             %}
             LoadingChosenFile(app);
+            app.Tnum_amt.Limits = [1,app.drta_handles.draq_d.noTrials];
+            app.TrialNoDigit_EditField.Limits = [1,app.drta_handles.draq_d.noTrials];
+            app.PIDtrial_EditField.Limits = [1,app.drta_handles.draq_d.noTrials];
+            disp("stop to add limits")
         end
 
         % Value changed function: SelectFile_Button
@@ -409,11 +423,20 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
         % Callback function: PIDTab, PIDUpdatePlotButton
         function PIDTab_update(app, event)
-            textUpdate = "Updating Plot, Please wait.";
-            PlotStatusUpdate(app,textUpdate,3);
-            GeneratePIDfigures(app);
-            textUpdate = "Plot Updated";
-            PlotStatusUpdate(app,textUpdate,3);
+            if app.PID_CheckBox.Value == 1 && app.Flags.ShowAnalog == 0
+                app.PIDmain_GridLayout.Visible = "on";
+                app.Flags.ShowAnalog = 1;
+            elseif app.PID_CheckBox.Value == 0 && app.Flags.ShowAnalog == 1
+                app.PIDmain_GridLayout.Visible = "off";
+                app.Flags.ShowAnalog = 0;
+            end
+            if app.Flags.ShowAnalog == 1
+                textUpdate = "Updating Plot, Please wait.";
+                PlotStatusUpdate(app,textUpdate,3);
+                GeneratePIDfigures(app);
+                % textUpdate = "Plot Updated";
+                % PlotStatusUpdate(app,textUpdate,3);
+            end
         end
     end
 
@@ -857,6 +880,12 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Filterorder_EditField.Layout.Column = 11;
             app.Filterorder_EditField.Value = 8;
 
+            % Create SaveChennels_Button
+            app.SaveChennels_Button = uibutton(app.GridLayoutTraces, 'push');
+            app.SaveChennels_Button.Layout.Row = 33;
+            app.SaveChennels_Button.Layout.Column = [12 13];
+            app.SaveChennels_Button.Text = 'Save Chennel(s)';
+
             % Create SelectChannelsTab
             app.SelectChannelsTab = uitab(app.TabGroup);
             app.SelectChannelsTab.AutoResizeChildren = 'off';
@@ -1110,14 +1139,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create PIDmain_GridLayout
             app.PIDmain_GridLayout = uigridlayout(app.PIDTab);
             app.PIDmain_GridLayout.RowHeight = {120, '1x'};
-
-            % Create PIDendMinusOne_UIAxes
-            app.PIDendMinusOne_UIAxes = uiaxes(app.PIDmain_GridLayout);
-            xlabel(app.PIDendMinusOne_UIAxes, 'X')
-            ylabel(app.PIDendMinusOne_UIAxes, 'Y')
-            zlabel(app.PIDendMinusOne_UIAxes, 'Z')
-            app.PIDendMinusOne_UIAxes.Layout.Row = 2;
-            app.PIDendMinusOne_UIAxes.Layout.Column = 1;
+            app.PIDmain_GridLayout.Visible = 'off';
 
             % Create PIDendSet_UIAxes
             app.PIDendSet_UIAxes = uiaxes(app.PIDmain_GridLayout);
@@ -1126,6 +1148,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             zlabel(app.PIDendSet_UIAxes, 'Z')
             app.PIDendSet_UIAxes.Layout.Row = 2;
             app.PIDendSet_UIAxes.Layout.Column = 2;
+
+            % Create PIDendMinusOne_UIAxes
+            app.PIDendMinusOne_UIAxes = uiaxes(app.PIDmain_GridLayout);
+            xlabel(app.PIDendMinusOne_UIAxes, 'X')
+            ylabel(app.PIDendMinusOne_UIAxes, 'Y')
+            zlabel(app.PIDendMinusOne_UIAxes, 'Z')
+            app.PIDendMinusOne_UIAxes.Layout.Row = 2;
+            app.PIDendMinusOne_UIAxes.Layout.Column = 1;
 
             % Create Panel
             app.Panel = uipanel(app.PIDmain_GridLayout);
@@ -1184,6 +1214,20 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.PIDUpdatePlotButton.Layout.Row = 2;
             app.PIDUpdatePlotButton.Layout.Column = 1;
             app.PIDUpdatePlotButton.Text = 'Update Plot';
+
+            % Create AnalogInterval_Label
+            app.AnalogInterval_Label = uilabel(app.PIDcontrols_GridLayout);
+            app.AnalogInterval_Label.HorizontalAlignment = 'center';
+            app.AnalogInterval_Label.FontName = 'Arial';
+            app.AnalogInterval_Label.Layout.Row = 3;
+            app.AnalogInterval_Label.Layout.Column = 1;
+            app.AnalogInterval_Label.Text = 'Interval (sec):';
+
+            % Create AnalogInterval_EditField
+            app.AnalogInterval_EditField = uieditfield(app.PIDcontrols_GridLayout, 'numeric');
+            app.AnalogInterval_EditField.FontName = 'Arial';
+            app.AnalogInterval_EditField.Layout.Row = 3;
+            app.AnalogInterval_EditField.Layout.Column = 2;
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
