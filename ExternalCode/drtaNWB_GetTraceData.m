@@ -65,7 +65,7 @@ if contains(handles.drtaWhichFile,'rhd')
 
         if (num_board_dig_in_channels > 0)
             fseek(fid,handles.draq_d.offset_start_dig(i),'bof');
-            board_dig_in_raw(board_dig_in_index:(board_dig_in_index + num_samples_per_data_block - 1)) = fread(fid, num_samples_per_data_block, 'uint16');
+            board_dig_in_raw(board_dig_in_index:(board_dig_in_index + num_samples_per_data_block - 1)) = fread(fid, num_samples_per_data_block, 'uint16')';
         end
 
         amplifier_index = amplifier_index + num_samples_per_data_block;
@@ -77,6 +77,11 @@ if contains(handles.drtaWhichFile,'rhd')
     % Close data file.
     fclose(fid);
 
+    szad=size(amplifier_data);
+    analogSize = num_board_adc_channels;
+    digitalSize = num_board_dig_in_channels;
+    ColumnTotal = szad(1)+analogSize+digitalSize+2;
+    data_this_trial=zeros(szad(2),ColumnTotal);
     % Extract digital input channels to separate variables.
     bdirsz = size(board_dig_in_raw,2);
     nbdicsz = handles.draq_d.num_board_dig_in_channels;
@@ -100,27 +105,9 @@ if contains(handles.drtaWhichFile,'rhd')
         amplifier_data = 0.195 * (amplifier_data - 32768); % units = microvolts
         %Setup the output as used by drta
         %data_this_trial=zeros(length(digital_input),22);
-        szad=size(amplifier_data);
-        data_this_trial=zeros(szad(2),szad(1)+7);
+        
         data_this_trial(:,1:szad(1))=amplifier_data';
-        %Enter the electrode recordings
-        %Note: for some reason Connor has the 32 channels on....
-        %And Praveen had 15
-        % switch size(amplifier_data,1)
-        %     case 20
-        %         data_this_trial(:,1:20)=amplifier_data';
-        %     case 16
-        %         data_this_trial(:,1:16)=amplifier_data';
-        %     case 24
-        %         data_this_trial(:,1:16)=amplifier_data(9:24,:)';
-        %     case 32
-        %         data_this_trial(:,1:16)=amplifier_data(9:24,:)';
-        % end
 
-        %Setup the output as used by drta
-        % data_this_trial=zeros(length(digital_input),22);
-        % data_this_trial=zeros(szad(2),(szad(1)+szadc(1)+2));
-        % adding all electrode recording to data matrix
         
     else
         szadc=size(board_adc_data);
@@ -129,11 +116,19 @@ if contains(handles.drtaWhichFile,'rhd')
     % adding all digital recording to data matrix
     if exist('board_adc_data','var')
         szadc2=size(board_adc_data);
-        fullChsize = szadc2(1) + szad(1)+2;
-        data_this_trial(:,szad(1)+2:fullChsize-1) = board_adc_data';
-        if szadc2(1)==8
-            data_this_trial(:,fullChsize-3)=board_adc_data(5,:)'; %this is done because the laser was recorded in a different ADC channel by Kira and Daniel
+        for bb = 1:4
+            data_this_trial(:,szad(1)+1+bb) = board_adc_data(bb,:)';
         end
+        for hh = 1:szadc2(1)-4
+            plc = szad(1)+2+bb;
+            data_this_trial(:,plc+hh) = board_adc_data(bb+hh,:)';
+        end
+        
+        % fullChsize = szadc2(1) + szad(1)+2;
+        % data_this_trial(:,szad(1)+2:fullChsize-1) = board_adc_data';
+        % if szadc2(1)==8
+        %     data_this_trial(:,fullChsize-3)=board_adc_data(5,:)'; %this is done because the laser was recorded in a different ADC channel by Kira and Daniel
+        % end
     end
 
     if handles.draq_d.num_board_dig_in_channels>0
@@ -154,8 +149,7 @@ if contains(handles.drtaWhichFile,'rhd')
         if handles.draq_d.num_board_dig_in_channels>=8
             data_this_trial(:,szad(1)+1)=1000*board_dig_in_data(8,:);
         end
-        data_this_trial(:,end+1)=data_this_trial(:,end-1);
-        data_this_trial(:,end-1)=digital_input;
+        data_this_trial(:,plc)=digital_input;
     end
 else
     %{

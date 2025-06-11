@@ -1,6 +1,7 @@
 function drta03_SetPreferences(app)
 
 addpath(genpath(fullfile(pwd,"ExternalCode")));
+addpath(genpath(fullfile(pwd,"CprogramCode")));
 addpath(genpath(fullfile(pwd,"matnwb")));
 %{
 Setting up initial parameters (drta_handles.p)
@@ -86,3 +87,6 @@ app.protocolDropDown.Items = ...
 
 app.Flags.OutputType = 1;
 app.Flags.ShowAnalog = 0;
+
+app.AnalogFigures.FiguresBuild = 0;
+app.DigitalFigures.FiguresBuild = 0;

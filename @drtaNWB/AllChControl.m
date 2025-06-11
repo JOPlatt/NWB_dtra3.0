@@ -1,8 +1,12 @@
 function AllChControl(app,event)
 
 tagName = event.Source.Tag;
-if contains(tagName,'A-')
+if contains(tagName,'E-')
     tagName = 'SingleCh';
+elseif contains(tagName,'D-')
+    tagName = 'DigitalCh';
+elseif contains(tagName,'A-')
+    tagName = 'AnalogCh';
 end
 switch tagName
     case 'SelectNoCh'
@@ -61,4 +65,28 @@ switch tagName
                 app.drta_Main.DiffDropdowns.(fNames{ii}).Enable = 0;
             end
         end
+    case 'DigitalCh'
+        OneChTag = event.Source.Tag;
+        Chnum = str2double(OneChTag(end-2:end));
+        app.drta_handles.p.VisableDigital(Chnum+1) = event.Source.Value;
+        fNames = fieldnames(app.drta_Main.DiffDropdowns);
+        if app.Diff_CheckBox.Value == 1 && event.Source.Value == 1
+            app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 1;
+        else
+            app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 0;
+        end
+    case 'AnalogCh'
+        OneChTag = event.Source.Tag;
+        Chnum = str2double(OneChTag(end-2:end));
+        app.drta_handles.p.VisableAnalog(Chnum+1) = event.Source.Value;
+        fNames = fieldnames(app.drta_Main.DiffDropdowns);
+        if app.Diff_CheckBox.Value == 1 && event.Source.Value == 1
+            app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 1;
+        else
+            app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 0;
+        end
 end
+
+%need to test out switching on and off analog and digital ch using the
+%checkboxes, remove PID checkbox, need to add limits for each ch shown
+

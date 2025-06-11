@@ -37,4 +37,6 @@ switch app.Cprogrom_DropDown.Value
         cpNum = 17;
 end
 
+app.Flags.SelectCh = 0;
+app.Flags.AllTrials = 1;
 app.drta_handles.p.which_c_program = cpNum;

@@ -31,7 +31,7 @@ elseif WhichOne == 3
     else
         app.PIDOutputText((OTsize(1)+1):(OTsize(1)+Text_size),1) = textUpdate;
     end
-    app.PIDupdate_TextArea.Value = app.PIDOutputText;
-    scroll(app.PIDupdate_TextArea,'bottom');
+    app.Analogupdate_TextArea.Value = app.PIDOutputText;
+    scroll(app.Analogupdate_TextArea,'bottom');
 end
 pause(0.1);

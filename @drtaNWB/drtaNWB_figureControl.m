@@ -173,6 +173,20 @@ if app.Flags.DataShownAs ~=12
     lowTic= cell([sum(app.drta_handles.p.VisableChannel) 1]);
     higerTic = cell([sum(app.drta_handles.p.VisableChannel) 1]);
     highestTic = cell([sum(app.drta_handles.p.VisableChannel) 1]);
+    % determining the x-axis interval
+    if app.E_all_CheckBox.Value == 1
+        display_interval = app.drta_handles.p.display_interval;
+    else
+        display_interval = app.drta_Main.Xinterval.electrod;
+    end
+    maxInterval = size(data,1)/app.drta_handles.draq_p.ActualRate;
+    
+    if display_interval > maxInterval
+        display_interval = maxInterval;
+        app.Interval_amt.Value = maxInterval;
+        app.Interval_amt.Limits = [0 maxInterval];
+        app.drta_Main.Xinterval.electrod = maxInterval;
+    end
     for ik = 1:sum(app.drta_handles.p.VisableChannel)
         ii = currentChan(ik);
 
@@ -181,7 +195,7 @@ if app.Flags.DataShownAs ~=12
         ii_from=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time)...
             *app.drta_handles.draq_p.ActualRate+1);
         ii_to=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time...
-            +app.drta_handles.p.display_interval)*app.drta_handles.draq_p.ActualRate);
+            +display_interval)*app.drta_handles.draq_p.ActualRate);
 
         sz_dat=length(data1);
         tim=[0 sz_dat];
@@ -343,29 +357,29 @@ if app.Flags.DataShownAs ~=12
     end
 
 
-    dt=app.drta_handles.p.display_interval/5;
+    dt=display_interval/5;
     dt=round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
     d_samples=dt*app.drta_handles.draq_p.ActualRate;
-    PlotSpace.XTick = 0:d_samples:app.drta_handles.p.display_interval*app.drta_handles.draq_p.ActualRate;
+    PlotSpace.XTick = 0:d_samples:display_interval*app.drta_handles.draq_p.ActualRate;
     PlotSpace.FontSize = 12;
-    app.drta_Main.ChannelTime = 0:d_samples:app.drta_handles.p.display_interval*app.drta_handles.draq_p.ActualRate;
+    app.drta_Main.ChannelTime = 0:d_samples:display_interval*app.drta_handles.draq_p.ActualRate;
     time=app.drta_handles.p.start_display_time;
     jj=1;
-    while time<(app.drta_handles.p.start_display_time+app.drta_handles.p.display_interval)
+    while time<=(app.drta_handles.p.start_display_time+display_interval)
         tick_label{jj}=num2str(time);
         time=time+dt;
         jj=jj+1;
     end
     PlotSpace.XTickLabel = tick_label;
     app.drta_Main.xticlabels = tick_label;
-
+    xlim(PlotSpace,[0 display_interval*app.drta_handles.draq_p.ActualRate]);
     app.drta_Plot.traces.NumChShown = ik;
     app.drta_Plot.traces.normData = app.drta_Main.ChannelData;
     app.drta_Plot.traces.rawData = CombinedRawDataSets;
     app.drta_Plot.traces.Ytics = combinedTicks;
     app.drta_Plot.traces.Ylabels = allTickLabels;
     app.drta_Plot.traces.Ylimits = YaxLim;
-    app.drta_Plot.traces.Xtics =  0:d_samples:app.drta_handles.p.display_interval*app.drta_handles.draq_p.ActualRate;
+    app.drta_Plot.traces.Xtics =  0:d_samples:display_interval*app.drta_handles.draq_p.ActualRate;
     app.drta_Plot.traces.Xticlabels = app.drta_Main.xticlabels;
     app.drta_Plot.traces.Xlabels = 'Time (sec)';
     app.drta_Plot.traces.Title = app.TrialOutcome.Text;
