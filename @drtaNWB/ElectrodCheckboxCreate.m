@@ -27,6 +27,10 @@ app.drta_Main.ChannelNames = {};
 app.drta_handles.p.VisableChannel = zeros([channel_total,1]);
 app.drta_handles.p.VisableDigital = zeros([digital_total,1]);
 app.drta_handles.p.VisableAnalog = ones([analog_total,1]);
+%preallocating y range choices
+app.drta_Main.Yrange.DDChoice = cell([1, channel_total+1]);
+app.drta_Main.Yrange.rangeVals = zeros([channel_total,1]);
+app.drta_Main.Yrange.DDChoice{1} = sprintf('all');
 for fn = 1:channel_total
     %checking to see if the next row is needed
     if fn > ColumnLimit
@@ -38,6 +42,7 @@ for fn = 1:channel_total
     if fn < 11
         ChTitle = uilabel(app.Channels_GridLayout,'Text',append('E-00',num2str(fn-1)));
         app.drta_Main.ChannelNames{fn} = append('A-00',num2str(fn-1));
+        
     elseif fn < 101
         ChTitle = uilabel(app.Channels_GridLayout,'Text',append('E-0',num2str(fn-1)));
         app.drta_Main.ChannelNames{fn} = append('A-0',num2str(fn-1));
@@ -45,6 +50,8 @@ for fn = 1:channel_total
         ChTitle = uilabel(app.Channels_GridLayout,'Text',append('E-',num2str(fn-1)));
         app.drta_Main.ChannelNames{fn} = append('A-',num2str(fn-1));
     end
+    app.drta_Main.Yrange.DDChoice{fn+1} = sprintf('%.2i',fn-1);
+    app.drta_Main.Yrange.rangeVals(fn) = app.Yrange_amt.Value;
     %label settings
     ChTitle.HorizontalAlignment = 'center';
     ChTitle.FontSize = 14;
@@ -322,5 +329,6 @@ app.drta_Main.ChannelPreset.SavePresetButton.ButtonPushedFcn = createCallbackFcn
 app.drta_Main.ChannelPreset.SavePresetButton.Tag = "SavePreset";
 app.drta_Main.ChannelPreset.SavePresetButton.Enable = "off";
 
-
+%updating y-range dropdown choices
+app.Yrange_DropDown.Items = app.drta_Main.Yrange.DDChoice;
 

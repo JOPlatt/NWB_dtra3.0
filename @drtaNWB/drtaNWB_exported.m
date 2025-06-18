@@ -24,8 +24,11 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         Load_Button                 matlab.ui.control.StateButton
         copyright_Label             matlab.ui.control.Label
         SelectFile_Button           matlab.ui.control.StateButton
-        Browse_TracesTab            matlab.ui.container.Tab
+        ElectrodChannelsTab         matlab.ui.container.Tab
         GridLayoutTraces            matlab.ui.container.GridLayout
+        ElectrodAllPlot_GridLayout  matlab.ui.container.GridLayout
+        E_AllPlots_Label            matlab.ui.control.Label
+        E_all_CheckBox              matlab.ui.control.CheckBox
         SaveChennels_Button         matlab.ui.control.Button
         Filterorder_EditField       matlab.ui.control.NumericEditField
         Filterorder_Label           matlab.ui.control.Label
@@ -63,16 +66,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         Yrange_amt                  matlab.ui.control.NumericEditField
         Yrange_Label                matlab.ui.control.Label
         uV_Label                    matlab.ui.control.Label
-        SelectChannelsTab           matlab.ui.container.Tab
-        ChannelPanel                matlab.ui.container.Panel
-        Channels_GridLayout         matlab.ui.container.GridLayout
         Digital_Traces_Tab          matlab.ui.container.Tab
         DigitalMain_GridLayout      matlab.ui.container.GridLayout
         ControlsLabel               matlab.ui.control.Label
         DigitalTracesLabel          matlab.ui.control.Label
         DigitalControls_Grid        matlab.ui.container.GridLayout
-        PID_CheckBox                matlab.ui.control.CheckBox
-        ShowPIDfigures_Label        matlab.ui.control.Label
+        DigitalAllPlot_GridLayout   matlab.ui.container.GridLayout
+        D_AllPlots_Label            matlab.ui.control.Label
+        D_all_CheckBox              matlab.ui.control.CheckBox
         StatusDiff_TextArea         matlab.ui.control.TextArea
         Trace_ylimtsMax_EditField   matlab.ui.control.NumericEditField
         Trace_ylimitsMin_EditField  matlab.ui.control.NumericEditField
@@ -91,26 +92,25 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         ExcLicks_Label              matlab.ui.control.Label
         ExcLicks_CheckBox           matlab.ui.control.CheckBox
         DigitalPlot_Grid            matlab.ui.container.GridLayout
-        Trigger_Plot                matlab.ui.control.UIAxes
-        Sniffing_Plot               matlab.ui.control.UIAxes
-        Lick_Plot                   matlab.ui.control.UIAxes
-        In_Port_Plot                matlab.ui.control.UIAxes
-        Diode_Plot                  matlab.ui.control.UIAxes
-        Digital_Plot                matlab.ui.control.UIAxes
-        PIDTab                      matlab.ui.container.Tab
-        PIDmain_GridLayout          matlab.ui.container.GridLayout
-        Panel                       matlab.ui.container.Panel
-        PIDcontrols_GridLayout      matlab.ui.container.GridLayout
+        AnalogChannelsTab           matlab.ui.container.Tab
+        Analogmain_GridLayout       matlab.ui.container.GridLayout
+        AnalogFigure_GridLayout     matlab.ui.container.GridLayout
+        AnalogControl_Panel         matlab.ui.container.Panel
+        Analogcontrols_GridLayout   matlab.ui.container.GridLayout
+        AllPlotsAnalog_GridLayout   matlab.ui.container.GridLayout
+        A_AllPlots_Label            matlab.ui.control.Label
+        A_all_CheckBox              matlab.ui.control.CheckBox
         AnalogInterval_EditField    matlab.ui.control.NumericEditField
         AnalogInterval_Label        matlab.ui.control.Label
-        PIDUpdatePlotButton         matlab.ui.control.Button
-        PIDupdate_TextArea          matlab.ui.control.TextArea
+        AnalogUpdatePlotButton      matlab.ui.control.Button
+        Analogupdate_TextArea       matlab.ui.control.TextArea
         TrialNumberLabel            matlab.ui.control.Label
-        PIDtrial_EditField          matlab.ui.control.NumericEditField
-        PIDnextTrial_Button         matlab.ui.control.Button
-        PIDpriorTrial_Button        matlab.ui.control.Button
-        PIDendMinusOne_UIAxes       matlab.ui.control.UIAxes
-        PIDendSet_UIAxes            matlab.ui.control.UIAxes
+        Analogtrial_EditField       matlab.ui.control.NumericEditField
+        AnalognextTrial_Button      matlab.ui.control.Button
+        AnalogpriorTrial_Button     matlab.ui.control.Button
+        SelectChannelsTab           matlab.ui.container.Tab
+        ChannelPanel                matlab.ui.container.Panel
+        Channels_GridLayout         matlab.ui.container.GridLayout
     end
 
 
@@ -123,7 +123,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         DiffOutputText = string; % text that give status updates for diff plots
         PIDOutputText = string; % text that give status updates for PID plots
         FlagAlpha %  Flag is used to indicate the first call to readout
-
+        AnalogFigures % houses analog information
         %         outputTextDisplay % Houses the text for the files that are created
         NWBFileName     % File name that will be used for the NWB file
         OutputLocation % Location of output files
@@ -131,6 +131,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         rhd = struct(); % Structure containing current .rhd file
         h % pointer for browse traces
         Flags = struct; % Description
+        DigitalFigures % houses digital information
     end
 
     methods (Access = public)
@@ -158,6 +159,9 @@ classdef drtaNWB_exported < matlab.apps.AppBase
         FigureSaving(app,varargin) % saving figures
         AllChControl(app,event) % all channel controls
         presetControl(app,event) % channel preset controls
+        XintervalControl(app,event) % determines if all plots are at the same x-axis interval
+        ElectDataPlotSave(app,varargin) % saves electrode channels data being displayed
+        YrangeChange(app,varargin) %Controls the y-range for each electrode plot
     end
 
         
@@ -201,64 +205,22 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: Yrange_amt
-        function Yrange_amtValueChanged(app, event)
-            %{
-            This function works as intended based on the orignal guide GUI
-            %}
-            y_range = app.Yrange_amt.Value;
-            %             v_range=y_range* app.drta_handles.draq_p.pre_gain* app.drta_handles.draq_p.daq_gain/1000000;
-
-
-            if (app.drta_handles.p.which_channel==1)
-                %Change for all channels
-                for ii=1:app.drta_handles.draq_p.no_spike_ch
-                    %         if v_range>handles.draq_p.inp_max
-                    %             handles.draq_p.prev_ylim(ii)=1000000*handles.draq_p.inp_max/(handles.draq_p.pre_gain*handles.draq_p.daq_gain);
-                    %         else
-                    app.drta_handles.plot.s_handles(ii)=y_range;
-                    app.drta_handles.draq_p.prev_ylim(ii)=y_range;
-                    %         end4
-                end
-            else
-                ii=app.drta_handles.p.which_channel-1;
-                %     if v_range>handles.draq_p.inp_max
-                %         handles.draq_p.prev_ylim(ii)=1000000*handles.draq_p.inp_max(2)/(handles.draq_p.pre_gain*handles.draq_p.daq_gain);
-                %     else
-                app.drta_handles.plot.s_handles(ii)=y_range;
-                app.drta_handles.draq_p.prev_ylim(ii)=y_range;
-                %     end
-            end
-            %             drta(app.drta_handles.w.drta,'drtaUpdateAllHandlespw',app.drta_handles)
-            drtaNWB_figureControl(app);
-            %             drtaNWB_PlotBrowseTraces(app.drta_handles);
-        end
-
-        % Value changed function: Interval_amt
+        % Value changed function: AnalogInterval_EditField, 
+        % ...and 2 other components
         function Interval_amtValueChanged(app, event)
-            switch event.tag
+            switch event.Source.Tag
                 case 'InterLFP'
-                    time_interval = app.Interval_amt.Value;
+                    CH.Source.Tag = "Electrod_All";
                 case 'InterDigi'
-                    time_interval = app.IntervalSecDigit_EditField.Value;
+                    CH.Source.Tag = "Digital_All";
+                case 'InterAnalog'
+                    CH.Source.Tag = "Analog_All";
             end
-
-            if(app.drta_handles.p.start_display_time+time_interval)>app.drta_handles.draq_p.sec_per_trigger
-                time_interval= app.drta_handles.draq_p.sec_per_trigger-app.drta_handles.p.start_display_time;
-            end
-
-            app.drta_handles.p.display_interval=time_interval;
-            app.Interval_amt.Value = app.drta_handles.p.display_interval;
-            app.IntervalSecDigit_EditField.Value = app.drta_handles.p.display_interval;
-            %             set(hObject,'String',num2str(handles.p.display_interval));
-
-            %             % Update all handles.p structures
-            %             drta('drtaUpdateAllHandlespw',app.drta_handles.w.drta,app.drta_handles);
-            %             drtaPlotBrowseTraces(app.drta_handles);
+            XintervalControl(app,CH);
         end
 
-        % Callback function: PIDnextTrial_Button, PIDpriorTrial_Button, 
-        % ...and 7 other components
+        % Callback function: AnalognextTrial_Button, 
+        % ...and 8 other components
         function TrialNum_ButtonPushed(app, event)
             TrialNumChange(app,event)
             textUpdate = ['Updating plot to show tiral ', ...
@@ -273,12 +235,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             VisualChoice(app);
             drtaNWB_figureControl(app);
             drta03_ShowDigital(app);
-            GeneratePIDfigures(app);
+            GenerateAnalogFigures(app);
+            
             textUpdate = ['Plot updated, now showing tiral ' ...
                 num2str(app.TrialNoDigit_EditField.Value)];
             PlotStatusUpdate(app,textUpdate,1)
             PlotStatusUpdate(app,textUpdate,2)
             PlotStatusUpdate(app,textUpdate,3)
+
         end
 
         % Value changed function: MClust_Button
@@ -325,8 +289,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             LoadingChosenFile(app);
             app.Tnum_amt.Limits = [1,app.drta_handles.draq_d.noTrials];
             app.TrialNoDigit_EditField.Limits = [1,app.drta_handles.draq_d.noTrials];
-            app.PIDtrial_EditField.Limits = [1,app.drta_handles.draq_d.noTrials];
-            disp("stop to add limits")
+            app.Analogtrial_EditField.Limits = [1,app.drta_handles.draq_d.noTrials];
+           
         end
 
         % Value changed function: SelectFile_Button
@@ -360,7 +324,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             ShowingDiffCheckbox(app)
         end
 
-        % Callback function: Browse_TracesTab, UpdateLFPPlot_Button
+        % Callback function: ElectrodChannelsTab, UpdateLFPPlot_Button
         function Browse_TracesTabButtonDown(app, event)
             textUpdate = "Updating Plot, Please wait.";
             PlotStatusUpdate(app,textUpdate,1)
@@ -397,12 +361,10 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             ReadoutUpdate(app,'File saved.')
         end
 
-        % Value changed function: Yrange_DropDown
-        function Yrange_DropDownValueChanged(app, event)
-            value = app.Yrange_DropDown.Value;
-            if value ~= "all"
-                app.drta_handles.p.which_channel = str2double(value);
-            end
+        % Value changed function: Yrange_DropDown, Yrange_amt
+        function ElectrodeYrangeChange(app, event)
+            YrangeChange(app);
+            
         end
 
         % Button pushed function: CreateNWBfile_Button
@@ -410,33 +372,26 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             NWBmakefile(app);
         end
 
-        % Value changed function: PID_CheckBox
-        function PID_CheckBoxValueChanged(app, event)
-            if app.PID_CheckBox.Value == 1
-                app.PIDmain_GridLayout.Visible = "on";
-                app.PIDtrial_EditField.Value = app.drta_handles.p.trialNo;
-            else
-                app.PIDmain_GridLayout.Visible = "off";
-            end
-
-        end
-
-        % Callback function: PIDTab, PIDUpdatePlotButton
-        function PIDTab_update(app, event)
-            if app.PID_CheckBox.Value == 1 && app.Flags.ShowAnalog == 0
-                app.PIDmain_GridLayout.Visible = "on";
-                app.Flags.ShowAnalog = 1;
-            elseif app.PID_CheckBox.Value == 0 && app.Flags.ShowAnalog == 1
-                app.PIDmain_GridLayout.Visible = "off";
-                app.Flags.ShowAnalog = 0;
-            end
-            if app.Flags.ShowAnalog == 1
+        % Callback function: AnalogChannelsTab, AnalogUpdatePlotButton
+        function AnalogTab_update(app, event)
                 textUpdate = "Updating Plot, Please wait.";
                 PlotStatusUpdate(app,textUpdate,3);
-                GeneratePIDfigures(app);
-                % textUpdate = "Plot Updated";
-                % PlotStatusUpdate(app,textUpdate,3);
-            end
+                GenerateAnalogFigures(app);
+                textUpdate = "Plot Updated";
+                PlotStatusUpdate(app,textUpdate,3);
+        end
+
+        % Value changed function: A_all_CheckBox, D_all_CheckBox, 
+        % ...and 1 other component
+        function Xaxis_Interval_control(app, event)
+            XintervalControl(app,event);
+        end
+
+        % Button pushed function: SaveChennels_Button
+        function SaveCurrentElectordPlotData(app, event)
+            ElectDataPlotSave(app,event);
+            textUpdate = "Selected electrodes have been saved";
+            PlotStatusUpdate(app,textUpdate,1)
         end
     end
 
@@ -571,7 +526,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create Cprogrom_DropDown
             app.Cprogrom_DropDown = uidropdown(app.GridLayoutLoad);
-            app.Cprogrom_DropDown.Items = {'dropcnsampler', 'dropcspm', 'background', 'spmult', 'mspy', 'osampler', 'spm2mult', 'lighton1', 'lighton5', 'dropcspm_conc', 'Laser-triggered', 'Laser-Merouann', 'dropcspm_hf', 'Working_memoy', 'Continuous', 'Laser-Kira', 'Laser-Schoppa'};
+            app.Cprogrom_DropDown.Items = {'dropcnsampler', 'dropcspm', 'background', 'spmult', 'mspy', 'osampler', 'spm2mult', 'lighton1', 'lighton5', 'dropcspm_conc', 'Laser-triggered', 'Laser-Merouann', 'dropcspm_hf', 'Working_memory', 'Continuous', 'Laser-Kira', 'Laser-Schoppa'};
             app.Cprogrom_DropDown.Visible = 'off';
             app.Cprogrom_DropDown.Layout.Row = 8;
             app.Cprogrom_DropDown.Layout.Column = [5 6];
@@ -604,14 +559,14 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.CreateNWBfile_Button.Layout.Column = 3;
             app.CreateNWBfile_Button.Text = 'Create NWB file';
 
-            % Create Browse_TracesTab
-            app.Browse_TracesTab = uitab(app.TabGroup);
-            app.Browse_TracesTab.AutoResizeChildren = 'off';
-            app.Browse_TracesTab.Title = 'Browse_Traces';
-            app.Browse_TracesTab.ButtonDownFcn = createCallbackFcn(app, @Browse_TracesTabButtonDown, true);
+            % Create ElectrodChannelsTab
+            app.ElectrodChannelsTab = uitab(app.TabGroup);
+            app.ElectrodChannelsTab.AutoResizeChildren = 'off';
+            app.ElectrodChannelsTab.Title = 'Electrod Channels';
+            app.ElectrodChannelsTab.ButtonDownFcn = createCallbackFcn(app, @Browse_TracesTabButtonDown, true);
 
             % Create GridLayoutTraces
-            app.GridLayoutTraces = uigridlayout(app.Browse_TracesTab);
+            app.GridLayoutTraces = uigridlayout(app.ElectrodChannelsTab);
             app.GridLayoutTraces.ColumnWidth = {79, 38, '1.95x', 82, '1x', 84, 66, 85, '1x', 84, 50, 50, 50};
             app.GridLayoutTraces.RowHeight = {10, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 19, 10, 40, '1x'};
             app.GridLayoutTraces.ColumnSpacing = 8.93749237060547;
@@ -633,7 +588,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create Yrange_amt
             app.Yrange_amt = uieditfield(app.GridLayoutTraces, 'numeric');
-            app.Yrange_amt.ValueChangedFcn = createCallbackFcn(app, @Yrange_amtValueChanged, true);
+            app.Yrange_amt.ValueChangedFcn = createCallbackFcn(app, @ElectrodeYrangeChange, true);
             app.Yrange_amt.HorizontalAlignment = 'center';
             app.Yrange_amt.Layout.Row = 27;
             app.Yrange_amt.Layout.Column = 11;
@@ -695,7 +650,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create Yrange_DropDown
             app.Yrange_DropDown = uidropdown(app.GridLayoutTraces);
             app.Yrange_DropDown.Items = {'all', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16'};
-            app.Yrange_DropDown.ValueChangedFcn = createCallbackFcn(app, @Yrange_DropDownValueChanged, true);
+            app.Yrange_DropDown.ValueChangedFcn = createCallbackFcn(app, @ElectrodeYrangeChange, true);
             app.Yrange_DropDown.FontName = 'Times New Roman';
             app.Yrange_DropDown.Layout.Row = 27;
             app.Yrange_DropDown.Layout.Column = [12 13];
@@ -835,6 +790,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Data_Shift_Bitand_Label = uilabel(app.GridLayoutTraces);
             app.Data_Shift_Bitand_Label.HorizontalAlignment = 'center';
             app.Data_Shift_Bitand_Label.FontName = 'Times New Roman';
+            app.Data_Shift_Bitand_Label.Enable = 'off';
+            app.Data_Shift_Bitand_Label.Visible = 'off';
             app.Data_Shift_Bitand_Label.Layout.Row = 21;
             app.Data_Shift_Bitand_Label.Layout.Column = [10 11];
             app.Data_Shift_Bitand_Label.Text = 'Data_Shift_Bitand';
@@ -843,6 +800,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.Shift_dropc_Bitand_Label = uilabel(app.GridLayoutTraces);
             app.Shift_dropc_Bitand_Label.HorizontalAlignment = 'center';
             app.Shift_dropc_Bitand_Label.FontName = 'Times New Roman';
+            app.Shift_dropc_Bitand_Label.Enable = 'off';
+            app.Shift_dropc_Bitand_Label.Visible = 'off';
             app.Shift_dropc_Bitand_Label.Layout.Row = 23;
             app.Shift_dropc_Bitand_Label.Layout.Column = [10 11];
             app.Shift_dropc_Bitand_Label.Text = 'Shift_dropc_Bitand';
@@ -850,12 +809,16 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create DataShiftBitand_EditField
             app.DataShiftBitand_EditField = uieditfield(app.GridLayoutTraces, 'numeric');
             app.DataShiftBitand_EditField.HorizontalAlignment = 'center';
+            app.DataShiftBitand_EditField.Enable = 'off';
+            app.DataShiftBitand_EditField.Visible = 'off';
             app.DataShiftBitand_EditField.Layout.Row = 21;
             app.DataShiftBitand_EditField.Layout.Column = 12;
 
             % Create ShiftDropcBitand_EditField
             app.ShiftDropcBitand_EditField = uieditfield(app.GridLayoutTraces, 'numeric');
             app.ShiftDropcBitand_EditField.HorizontalAlignment = 'center';
+            app.ShiftDropcBitand_EditField.Enable = 'off';
+            app.ShiftDropcBitand_EditField.Visible = 'off';
             app.ShiftDropcBitand_EditField.Layout.Row = 23;
             app.ShiftDropcBitand_EditField.Layout.Column = 12;
 
@@ -882,31 +845,40 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create SaveChennels_Button
             app.SaveChennels_Button = uibutton(app.GridLayoutTraces, 'push');
+            app.SaveChennels_Button.ButtonPushedFcn = createCallbackFcn(app, @SaveCurrentElectordPlotData, true);
+            app.SaveChennels_Button.Tag = 'Electrode';
             app.SaveChennels_Button.Layout.Row = 33;
             app.SaveChennels_Button.Layout.Column = [12 13];
             app.SaveChennels_Button.Text = 'Save Chennel(s)';
 
-            % Create SelectChannelsTab
-            app.SelectChannelsTab = uitab(app.TabGroup);
-            app.SelectChannelsTab.AutoResizeChildren = 'off';
-            app.SelectChannelsTab.Title = 'Select Channels';
-            app.SelectChannelsTab.Scrollable = 'on';
+            % Create ElectrodAllPlot_GridLayout
+            app.ElectrodAllPlot_GridLayout = uigridlayout(app.GridLayoutTraces);
+            app.ElectrodAllPlot_GridLayout.ColumnWidth = {75, 25};
+            app.ElectrodAllPlot_GridLayout.RowHeight = {'1x'};
+            app.ElectrodAllPlot_GridLayout.RowSpacing = 5;
+            app.ElectrodAllPlot_GridLayout.Padding = [1 1 1 1];
+            app.ElectrodAllPlot_GridLayout.Layout.Row = 29;
+            app.ElectrodAllPlot_GridLayout.Layout.Column = [12 13];
 
-            % Create ChannelPanel
-            app.ChannelPanel = uipanel(app.SelectChannelsTab);
-            app.ChannelPanel.AutoResizeChildren = 'off';
-            app.ChannelPanel.BorderType = 'none';
-            app.ChannelPanel.Position = [1 58 1097 731];
+            % Create E_all_CheckBox
+            app.E_all_CheckBox = uicheckbox(app.ElectrodAllPlot_GridLayout);
+            app.E_all_CheckBox.ValueChangedFcn = createCallbackFcn(app, @Xaxis_Interval_control, true);
+            app.E_all_CheckBox.Tag = 'Electrod_All';
+            app.E_all_CheckBox.Text = '';
+            app.E_all_CheckBox.Layout.Row = 1;
+            app.E_all_CheckBox.Layout.Column = 2;
+            app.E_all_CheckBox.Value = true;
 
-            % Create Channels_GridLayout
-            app.Channels_GridLayout = uigridlayout(app.ChannelPanel);
-            app.Channels_GridLayout.ColumnWidth = {80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15};
-            app.Channels_GridLayout.RowHeight = {25, 25};
-            app.Channels_GridLayout.ColumnSpacing = 5.5;
+            % Create E_AllPlots_Label
+            app.E_AllPlots_Label = uilabel(app.ElectrodAllPlot_GridLayout);
+            app.E_AllPlots_Label.HorizontalAlignment = 'right';
+            app.E_AllPlots_Label.Layout.Row = 1;
+            app.E_AllPlots_Label.Layout.Column = 1;
+            app.E_AllPlots_Label.Text = 'For All Plots';
 
             % Create Digital_Traces_Tab
             app.Digital_Traces_Tab = uitab(app.TabGroup);
-            app.Digital_Traces_Tab.Title = 'Digital_Traces';
+            app.Digital_Traces_Tab.Title = 'Digital Channels';
             app.Digital_Traces_Tab.ButtonDownFcn = createCallbackFcn(app, @UpdateDigitPlots_ButtonPushed, true);
 
             % Create DigitalMain_GridLayout
@@ -920,48 +892,12 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create DigitalPlot_Grid
             app.DigitalPlot_Grid = uigridlayout(app.DigitalMain_GridLayout);
             app.DigitalPlot_Grid.ColumnWidth = {'1x'};
-            app.DigitalPlot_Grid.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x'};
+            app.DigitalPlot_Grid.RowHeight = {'1x'};
             app.DigitalPlot_Grid.ColumnSpacing = 1;
             app.DigitalPlot_Grid.RowSpacing = 1;
             app.DigitalPlot_Grid.Padding = [1 1 1 1];
             app.DigitalPlot_Grid.Layout.Row = 2;
             app.DigitalPlot_Grid.Layout.Column = 1;
-
-            % Create Digital_Plot
-            app.Digital_Plot = uiaxes(app.DigitalPlot_Grid);
-            app.Digital_Plot.FontName = 'Times New Roman';
-            app.Digital_Plot.Layout.Row = 6;
-            app.Digital_Plot.Layout.Column = 1;
-
-            % Create Diode_Plot
-            app.Diode_Plot = uiaxes(app.DigitalPlot_Grid);
-            app.Diode_Plot.FontName = 'Times New Roman';
-            app.Diode_Plot.Layout.Row = 5;
-            app.Diode_Plot.Layout.Column = 1;
-
-            % Create In_Port_Plot
-            app.In_Port_Plot = uiaxes(app.DigitalPlot_Grid);
-            app.In_Port_Plot.FontName = 'Times New Roman';
-            app.In_Port_Plot.Layout.Row = 4;
-            app.In_Port_Plot.Layout.Column = 1;
-
-            % Create Lick_Plot
-            app.Lick_Plot = uiaxes(app.DigitalPlot_Grid);
-            app.Lick_Plot.FontName = 'Times New Roman';
-            app.Lick_Plot.Layout.Row = 3;
-            app.Lick_Plot.Layout.Column = 1;
-
-            % Create Sniffing_Plot
-            app.Sniffing_Plot = uiaxes(app.DigitalPlot_Grid);
-            app.Sniffing_Plot.FontName = 'Times New Roman';
-            app.Sniffing_Plot.Layout.Row = 2;
-            app.Sniffing_Plot.Layout.Column = 1;
-
-            % Create Trigger_Plot
-            app.Trigger_Plot = uiaxes(app.DigitalPlot_Grid);
-            app.Trigger_Plot.FontName = 'Times New Roman';
-            app.Trigger_Plot.Layout.Row = 1;
-            app.Trigger_Plot.Layout.Column = 1;
 
             % Create DigitalControls_Grid
             app.DigitalControls_Grid = uigridlayout(app.DigitalMain_GridLayout);
@@ -1033,6 +969,7 @@ classdef drtaNWB_exported < matlab.apps.AppBase
 
             % Create IntervalSecDigit_EditField
             app.IntervalSecDigit_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
+            app.IntervalSecDigit_EditField.ValueChangedFcn = createCallbackFcn(app, @Interval_amtValueChanged, true);
             app.IntervalSecDigit_EditField.Tag = 'InterDigi';
             app.IntervalSecDigit_EditField.HorizontalAlignment = 'center';
             app.IntervalSecDigit_EditField.Layout.Row = 10;
@@ -1077,6 +1014,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create Trace_ylimits_Label
             app.Trace_ylimits_Label = uilabel(app.DigitalControls_Grid);
             app.Trace_ylimits_Label.HorizontalAlignment = 'center';
+            app.Trace_ylimits_Label.Enable = 'off';
+            app.Trace_ylimits_Label.Visible = 'off';
             app.Trace_ylimits_Label.Layout.Row = 2;
             app.Trace_ylimits_Label.Layout.Column = 1;
             app.Trace_ylimits_Label.Text = 'Trace y-limits';
@@ -1084,6 +1023,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create Trace_ylimitsMin_EditField
             app.Trace_ylimitsMin_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
             app.Trace_ylimitsMin_EditField.HorizontalAlignment = 'center';
+            app.Trace_ylimitsMin_EditField.Enable = 'off';
+            app.Trace_ylimitsMin_EditField.Visible = 'off';
             app.Trace_ylimitsMin_EditField.Layout.Row = 2;
             app.Trace_ylimitsMin_EditField.Layout.Column = 3;
             app.Trace_ylimitsMin_EditField.Value = 1500;
@@ -1091,6 +1032,8 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             % Create Trace_ylimtsMax_EditField
             app.Trace_ylimtsMax_EditField = uieditfield(app.DigitalControls_Grid, 'numeric');
             app.Trace_ylimtsMax_EditField.HorizontalAlignment = 'center';
+            app.Trace_ylimtsMax_EditField.Enable = 'off';
+            app.Trace_ylimtsMax_EditField.Visible = 'off';
             app.Trace_ylimtsMax_EditField.Layout.Row = 2;
             app.Trace_ylimtsMax_EditField.Layout.Column = 4;
             app.Trace_ylimtsMax_EditField.Value = 3000;
@@ -1100,20 +1043,30 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.StatusDiff_TextArea.Layout.Row = 18;
             app.StatusDiff_TextArea.Layout.Column = [1 3];
 
-            % Create ShowPIDfigures_Label
-            app.ShowPIDfigures_Label = uilabel(app.DigitalControls_Grid);
-            app.ShowPIDfigures_Label.HorizontalAlignment = 'center';
-            app.ShowPIDfigures_Label.FontName = 'Arial';
-            app.ShowPIDfigures_Label.Layout.Row = 4;
-            app.ShowPIDfigures_Label.Layout.Column = 1;
-            app.ShowPIDfigures_Label.Text = 'Show PID figures';
+            % Create DigitalAllPlot_GridLayout
+            app.DigitalAllPlot_GridLayout = uigridlayout(app.DigitalControls_Grid);
+            app.DigitalAllPlot_GridLayout.ColumnWidth = {75, 25};
+            app.DigitalAllPlot_GridLayout.RowHeight = {'1x'};
+            app.DigitalAllPlot_GridLayout.RowSpacing = 5;
+            app.DigitalAllPlot_GridLayout.Padding = [1 1 1 1];
+            app.DigitalAllPlot_GridLayout.Layout.Row = 10;
+            app.DigitalAllPlot_GridLayout.Layout.Column = [3 4];
 
-            % Create PID_CheckBox
-            app.PID_CheckBox = uicheckbox(app.DigitalControls_Grid);
-            app.PID_CheckBox.ValueChangedFcn = createCallbackFcn(app, @PID_CheckBoxValueChanged, true);
-            app.PID_CheckBox.Text = '';
-            app.PID_CheckBox.Layout.Row = 4;
-            app.PID_CheckBox.Layout.Column = 2;
+            % Create D_all_CheckBox
+            app.D_all_CheckBox = uicheckbox(app.DigitalAllPlot_GridLayout);
+            app.D_all_CheckBox.ValueChangedFcn = createCallbackFcn(app, @Xaxis_Interval_control, true);
+            app.D_all_CheckBox.Tag = 'Digital_All';
+            app.D_all_CheckBox.Text = '';
+            app.D_all_CheckBox.Layout.Row = 1;
+            app.D_all_CheckBox.Layout.Column = 2;
+            app.D_all_CheckBox.Value = true;
+
+            % Create D_AllPlots_Label
+            app.D_AllPlots_Label = uilabel(app.DigitalAllPlot_GridLayout);
+            app.D_AllPlots_Label.HorizontalAlignment = 'right';
+            app.D_AllPlots_Label.Layout.Row = 1;
+            app.D_AllPlots_Label.Layout.Column = 1;
+            app.D_AllPlots_Label.Text = 'For All Plots';
 
             % Create DigitalTracesLabel
             app.DigitalTracesLabel = uilabel(app.DigitalMain_GridLayout);
@@ -1131,92 +1084,75 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.ControlsLabel.Layout.Column = 2;
             app.ControlsLabel.Text = 'Controls';
 
-            % Create PIDTab
-            app.PIDTab = uitab(app.TabGroup);
-            app.PIDTab.Title = 'PID';
-            app.PIDTab.ButtonDownFcn = createCallbackFcn(app, @PIDTab_update, true);
+            % Create AnalogChannelsTab
+            app.AnalogChannelsTab = uitab(app.TabGroup);
+            app.AnalogChannelsTab.Title = 'Analog Channels';
+            app.AnalogChannelsTab.ButtonDownFcn = createCallbackFcn(app, @AnalogTab_update, true);
 
-            % Create PIDmain_GridLayout
-            app.PIDmain_GridLayout = uigridlayout(app.PIDTab);
-            app.PIDmain_GridLayout.RowHeight = {120, '1x'};
-            app.PIDmain_GridLayout.Visible = 'off';
+            % Create Analogmain_GridLayout
+            app.Analogmain_GridLayout = uigridlayout(app.AnalogChannelsTab);
+            app.Analogmain_GridLayout.RowHeight = {120, '1x'};
 
-            % Create PIDendSet_UIAxes
-            app.PIDendSet_UIAxes = uiaxes(app.PIDmain_GridLayout);
-            xlabel(app.PIDendSet_UIAxes, 'X')
-            ylabel(app.PIDendSet_UIAxes, 'Y')
-            zlabel(app.PIDendSet_UIAxes, 'Z')
-            app.PIDendSet_UIAxes.Layout.Row = 2;
-            app.PIDendSet_UIAxes.Layout.Column = 2;
+            % Create AnalogControl_Panel
+            app.AnalogControl_Panel = uipanel(app.Analogmain_GridLayout);
+            app.AnalogControl_Panel.Layout.Row = 1;
+            app.AnalogControl_Panel.Layout.Column = [1 2];
+            app.AnalogControl_Panel.FontName = 'Arial';
 
-            % Create PIDendMinusOne_UIAxes
-            app.PIDendMinusOne_UIAxes = uiaxes(app.PIDmain_GridLayout);
-            xlabel(app.PIDendMinusOne_UIAxes, 'X')
-            ylabel(app.PIDendMinusOne_UIAxes, 'Y')
-            zlabel(app.PIDendMinusOne_UIAxes, 'Z')
-            app.PIDendMinusOne_UIAxes.Layout.Row = 2;
-            app.PIDendMinusOne_UIAxes.Layout.Column = 1;
+            % Create Analogcontrols_GridLayout
+            app.Analogcontrols_GridLayout = uigridlayout(app.AnalogControl_Panel);
+            app.Analogcontrols_GridLayout.ColumnWidth = {100, 70, 40, 70, 10, 210, '1x'};
+            app.Analogcontrols_GridLayout.RowHeight = {26, 25, '1x'};
 
-            % Create Panel
-            app.Panel = uipanel(app.PIDmain_GridLayout);
-            app.Panel.Layout.Row = 1;
-            app.Panel.Layout.Column = [1 2];
-            app.Panel.FontName = 'Arial';
+            % Create AnalogpriorTrial_Button
+            app.AnalogpriorTrial_Button = uibutton(app.Analogcontrols_GridLayout, 'push');
+            app.AnalogpriorTrial_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
+            app.AnalogpriorTrial_Button.Tag = 'TnumMinus';
+            app.AnalogpriorTrial_Button.Icon = fullfile(pathToMLAPP, 'Images', 'leftArrow.png');
+            app.AnalogpriorTrial_Button.Layout.Row = 1;
+            app.AnalogpriorTrial_Button.Layout.Column = 2;
+            app.AnalogpriorTrial_Button.Text = '';
 
-            % Create PIDcontrols_GridLayout
-            app.PIDcontrols_GridLayout = uigridlayout(app.Panel);
-            app.PIDcontrols_GridLayout.ColumnWidth = {100, 70, 40, 70, 10, 210, '1x'};
-            app.PIDcontrols_GridLayout.RowHeight = {26, 25, '1x'};
+            % Create AnalognextTrial_Button
+            app.AnalognextTrial_Button = uibutton(app.Analogcontrols_GridLayout, 'push');
+            app.AnalognextTrial_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
+            app.AnalognextTrial_Button.Tag = 'TnumPlus';
+            app.AnalognextTrial_Button.Icon = fullfile(pathToMLAPP, 'Images', 'rightArrow.png');
+            app.AnalognextTrial_Button.Layout.Row = 1;
+            app.AnalognextTrial_Button.Layout.Column = 4;
+            app.AnalognextTrial_Button.Text = '';
 
-            % Create PIDpriorTrial_Button
-            app.PIDpriorTrial_Button = uibutton(app.PIDcontrols_GridLayout, 'push');
-            app.PIDpriorTrial_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
-            app.PIDpriorTrial_Button.Tag = 'TnumMinus';
-            app.PIDpriorTrial_Button.Icon = fullfile(pathToMLAPP, 'Images', 'leftArrow.png');
-            app.PIDpriorTrial_Button.Layout.Row = 1;
-            app.PIDpriorTrial_Button.Layout.Column = 2;
-            app.PIDpriorTrial_Button.Text = '';
-
-            % Create PIDnextTrial_Button
-            app.PIDnextTrial_Button = uibutton(app.PIDcontrols_GridLayout, 'push');
-            app.PIDnextTrial_Button.ButtonPushedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
-            app.PIDnextTrial_Button.Tag = 'TnumPlus';
-            app.PIDnextTrial_Button.Icon = fullfile(pathToMLAPP, 'Images', 'rightArrow.png');
-            app.PIDnextTrial_Button.Layout.Row = 1;
-            app.PIDnextTrial_Button.Layout.Column = 4;
-            app.PIDnextTrial_Button.Text = '';
-
-            % Create PIDtrial_EditField
-            app.PIDtrial_EditField = uieditfield(app.PIDcontrols_GridLayout, 'numeric');
-            app.PIDtrial_EditField.ValueChangedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
-            app.PIDtrial_EditField.Tag = 'PIDnumField';
-            app.PIDtrial_EditField.HorizontalAlignment = 'center';
-            app.PIDtrial_EditField.FontName = 'Arial';
-            app.PIDtrial_EditField.Layout.Row = 1;
-            app.PIDtrial_EditField.Layout.Column = 3;
+            % Create Analogtrial_EditField
+            app.Analogtrial_EditField = uieditfield(app.Analogcontrols_GridLayout, 'numeric');
+            app.Analogtrial_EditField.ValueChangedFcn = createCallbackFcn(app, @TrialNum_ButtonPushed, true);
+            app.Analogtrial_EditField.Tag = 'AnalognumField';
+            app.Analogtrial_EditField.HorizontalAlignment = 'center';
+            app.Analogtrial_EditField.FontName = 'Arial';
+            app.Analogtrial_EditField.Layout.Row = 1;
+            app.Analogtrial_EditField.Layout.Column = 3;
 
             % Create TrialNumberLabel
-            app.TrialNumberLabel = uilabel(app.PIDcontrols_GridLayout);
+            app.TrialNumberLabel = uilabel(app.Analogcontrols_GridLayout);
             app.TrialNumberLabel.HorizontalAlignment = 'center';
             app.TrialNumberLabel.FontName = 'Arial';
             app.TrialNumberLabel.Layout.Row = 1;
             app.TrialNumberLabel.Layout.Column = 1;
             app.TrialNumberLabel.Text = 'Trial Number:';
 
-            % Create PIDupdate_TextArea
-            app.PIDupdate_TextArea = uitextarea(app.PIDcontrols_GridLayout);
-            app.PIDupdate_TextArea.Layout.Row = [1 2];
-            app.PIDupdate_TextArea.Layout.Column = 6;
+            % Create Analogupdate_TextArea
+            app.Analogupdate_TextArea = uitextarea(app.Analogcontrols_GridLayout);
+            app.Analogupdate_TextArea.Layout.Row = [1 2];
+            app.Analogupdate_TextArea.Layout.Column = 6;
 
-            % Create PIDUpdatePlotButton
-            app.PIDUpdatePlotButton = uibutton(app.PIDcontrols_GridLayout, 'push');
-            app.PIDUpdatePlotButton.ButtonPushedFcn = createCallbackFcn(app, @PIDTab_update, true);
-            app.PIDUpdatePlotButton.Layout.Row = 2;
-            app.PIDUpdatePlotButton.Layout.Column = 1;
-            app.PIDUpdatePlotButton.Text = 'Update Plot';
+            % Create AnalogUpdatePlotButton
+            app.AnalogUpdatePlotButton = uibutton(app.Analogcontrols_GridLayout, 'push');
+            app.AnalogUpdatePlotButton.ButtonPushedFcn = createCallbackFcn(app, @AnalogTab_update, true);
+            app.AnalogUpdatePlotButton.Layout.Row = 2;
+            app.AnalogUpdatePlotButton.Layout.Column = 1;
+            app.AnalogUpdatePlotButton.Text = 'Update Plot';
 
             % Create AnalogInterval_Label
-            app.AnalogInterval_Label = uilabel(app.PIDcontrols_GridLayout);
+            app.AnalogInterval_Label = uilabel(app.Analogcontrols_GridLayout);
             app.AnalogInterval_Label.HorizontalAlignment = 'center';
             app.AnalogInterval_Label.FontName = 'Arial';
             app.AnalogInterval_Label.Layout.Row = 3;
@@ -1224,10 +1160,63 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             app.AnalogInterval_Label.Text = 'Interval (sec):';
 
             % Create AnalogInterval_EditField
-            app.AnalogInterval_EditField = uieditfield(app.PIDcontrols_GridLayout, 'numeric');
+            app.AnalogInterval_EditField = uieditfield(app.Analogcontrols_GridLayout, 'numeric');
+            app.AnalogInterval_EditField.ValueChangedFcn = createCallbackFcn(app, @Interval_amtValueChanged, true);
+            app.AnalogInterval_EditField.Tag = 'InterAnalog';
             app.AnalogInterval_EditField.FontName = 'Arial';
             app.AnalogInterval_EditField.Layout.Row = 3;
             app.AnalogInterval_EditField.Layout.Column = 2;
+
+            % Create AllPlotsAnalog_GridLayout
+            app.AllPlotsAnalog_GridLayout = uigridlayout(app.Analogcontrols_GridLayout);
+            app.AllPlotsAnalog_GridLayout.ColumnWidth = {70, 25};
+            app.AllPlotsAnalog_GridLayout.RowHeight = {'1x'};
+            app.AllPlotsAnalog_GridLayout.RowSpacing = 5;
+            app.AllPlotsAnalog_GridLayout.Padding = [1 1 1 1];
+            app.AllPlotsAnalog_GridLayout.Layout.Row = 3;
+            app.AllPlotsAnalog_GridLayout.Layout.Column = [3 5];
+
+            % Create A_all_CheckBox
+            app.A_all_CheckBox = uicheckbox(app.AllPlotsAnalog_GridLayout);
+            app.A_all_CheckBox.ValueChangedFcn = createCallbackFcn(app, @Xaxis_Interval_control, true);
+            app.A_all_CheckBox.Tag = 'Analog_All';
+            app.A_all_CheckBox.Text = '';
+            app.A_all_CheckBox.Layout.Row = 1;
+            app.A_all_CheckBox.Layout.Column = 2;
+            app.A_all_CheckBox.Value = true;
+
+            % Create A_AllPlots_Label
+            app.A_AllPlots_Label = uilabel(app.AllPlotsAnalog_GridLayout);
+            app.A_AllPlots_Label.HorizontalAlignment = 'right';
+            app.A_AllPlots_Label.Layout.Row = 1;
+            app.A_AllPlots_Label.Layout.Column = 1;
+            app.A_AllPlots_Label.Text = 'For All Plots';
+
+            % Create AnalogFigure_GridLayout
+            app.AnalogFigure_GridLayout = uigridlayout(app.Analogmain_GridLayout);
+            app.AnalogFigure_GridLayout.ColumnWidth = {'1x'};
+            app.AnalogFigure_GridLayout.RowHeight = {'1x'};
+            app.AnalogFigure_GridLayout.RowSpacing = 1;
+            app.AnalogFigure_GridLayout.Layout.Row = 2;
+            app.AnalogFigure_GridLayout.Layout.Column = [1 2];
+
+            % Create SelectChannelsTab
+            app.SelectChannelsTab = uitab(app.TabGroup);
+            app.SelectChannelsTab.AutoResizeChildren = 'off';
+            app.SelectChannelsTab.Title = 'Select Channels';
+            app.SelectChannelsTab.Scrollable = 'on';
+
+            % Create ChannelPanel
+            app.ChannelPanel = uipanel(app.SelectChannelsTab);
+            app.ChannelPanel.AutoResizeChildren = 'off';
+            app.ChannelPanel.BorderType = 'none';
+            app.ChannelPanel.Position = [1 58 1097 731];
+
+            % Create Channels_GridLayout
+            app.Channels_GridLayout = uigridlayout(app.ChannelPanel);
+            app.Channels_GridLayout.ColumnWidth = {80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15, 80, 15};
+            app.Channels_GridLayout.RowHeight = {25, 25};
+            app.Channels_GridLayout.ColumnSpacing = 5.5;
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

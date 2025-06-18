@@ -256,26 +256,28 @@ if app.Flags.DataShownAs ~=12
         % *****************
         rangespace = rangespace + 1.3;
         %stacking the data
+        
         for oy = 1:size(data1(ii_from:ii_to,ii),1)
-            if data1(ii_from+oy-1,ii) >= app.drta_handles.draq_p.prev_ylim(ii)
-                MaxedData(oy,1) = app.drta_handles.draq_p.prev_ylim(ii);
-            elseif data1(ii_from+oy-1,ii) <= -app.drta_handles.draq_p.prev_ylim(ii)
-                MaxedData(oy,1) = -app.drta_handles.draq_p.prev_ylim(ii);
+            if data1(ii_from+oy-1,ii) >= app.drta_Main.Yrange.rangeVals(ii) && sum(app.drta_handles.p.VisableChannel) > 1
+                MaxedData(oy,1) = app.drta_Main.Yrange.rangeVals(ii);
+            elseif data1(ii_from+oy-1,ii) <= -app.drta_Main.Yrange.rangeVals(ii) && sum(app.drta_handles.p.VisableChannel) > 1
+                MaxedData(oy,1) = -app.drta_Main.Yrange.rangeVals(ii);
             else
                 MaxedData(oy,1) = data1(ii_from+oy-1,ii);
             end
         end
+        
         NeededNormed = [...
-            -app.drta_handles.draq_p.prev_ylim(ii); ...
-            app.drta_handles.draq_p.prev_ylim(ii); ...
-            (floor(-2*app.drta_handles.draq_p.prev_ylim(ii)/3)); ...
-            (floor(2*app.drta_handles.draq_p.prev_ylim(ii)/3)); ...
+            -app.drta_Main.Yrange.rangeVals(ii); ...
+            app.drta_Main.Yrange.rangeVals(ii); ...
+            (floor(-2*app.drta_Main.Yrange.rangeVals(ii)/3)); ...
+            (floor(2*app.drta_Main.Yrange.rangeVals(ii)/3)); ...
             MaxedData];
         if sum(app.drta_handles.p.VisableChannel) > 1
-            lowestTic{ik} = num2str(-app.drta_handles.draq_p.prev_ylim(ii));
-            lowTic{ik} = num2str(floor(-2*app.drta_handles.draq_p.prev_ylim(ii)/3));
-            higerTic{ik} = num2str(floor(2*app.drta_handles.draq_p.prev_ylim(ii)/3));
-            highestTic{ik} = num2str(app.drta_handles.draq_p.prev_ylim(ii));
+            lowestTic{ik} = num2str(-app.drta_Main.Yrange.rangeVals(ii));
+            lowTic{ik} = num2str(floor(-2*app.drta_Main.Yrange.rangeVals(ii)/3));
+            higerTic{ik} = num2str(floor(2*app.drta_Main.Yrange.rangeVals(ii)/3));
+            highestTic{ik} = num2str(app.drta_Main.Yrange.rangeVals(ii));
             dataNorm = normalize(NeededNormed ,"range",[(rangespace) (rangespace+1)]);
         else
             dataNorm = NeededNormed;
@@ -308,19 +310,20 @@ if app.Flags.DataShownAs ~=12
         plot(PlotSpace,CombinedDataSets)
         ylim(PlotSpace,[(yPlace(1)-.1) (yPlace(end)+1.4)]);
         YaxLim = [(yPlace(1)-.1) (yPlace(end)+1.4)];
+        tLabels = [(yPlace+0.15),(yPlace+1.15)];
         %placing all the y-lines
         if size(yPlace,2) > 1
             yline(PlotSpace,yPlace(2:end),"LineWidth",0.8,"Color","black","Alpha",1)
         end
-        yline(PlotSpace,[sort([Wlimit(1,:),Wlimit(2,:)])], ...
+        yline(PlotSpace,[sort(tLabels(1,:))], ...
             "LineWidth",0.4,"Color","black","Alpha",1,"LineStyle",":")
         %placing all tick lines for lables and index points
         yticks(PlotSpace,sort([Mlimit(1,:),Mlimit(2,:)],2))
         ChLables = yPlace+0.65;
-        tLabels = [(yPlace+0.15),(yPlace+1.15)];
+        
     else
-        ylim(PlotSpace,[-app.drta_handles.draq_p.prev_ylim(ii) app.drta_handles.draq_p.prev_ylim(ii)])
-        YaxLim = [-app.drta_handles.draq_p.prev_ylim(ii) app.drta_handles.draq_p.prev_ylim(ii)];
+        ylim(PlotSpace,[-app.drta_Main.Yrange.rangeVals(ii) app.drta_Main.Yrange.rangeVals(ii)])
+        YaxLim = [-app.drta_Main.Yrange.rangeVals(ii) app.drta_Main.Yrange.rangeVals(ii)];
     end
     xlabel(PlotSpace,'Time (sec)');
     if sum(app.drta_handles.p.VisableChannel) < 11
@@ -383,6 +386,7 @@ if app.Flags.DataShownAs ~=12
     app.drta_Plot.traces.Xticlabels = app.drta_Main.xticlabels;
     app.drta_Plot.traces.Xlabels = 'Time (sec)';
     app.drta_Plot.traces.Title = app.TrialOutcome.Text;
+    app.drta_Plot.traces.Xlimits = [0 display_interval*app.drta_handles.draq_p.ActualRate];
 
 
 end

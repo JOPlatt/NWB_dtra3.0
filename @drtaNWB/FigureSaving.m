@@ -16,17 +16,18 @@ MatSaveFileName = fullfile(DIRname,MatSaveFileName);
 fig1 = figure();
 ax = axes;
 copyobj(CurrentFig.Children,ax);
-title(ax,figBeingSaved.Title)
+title(ax,figBeingSaved.Title);
 ax.XTick = figBeingSaved.Xtics;
 ax.XTickLabel = figBeingSaved.Xticlabels;
-xlabel(ax,figBeingSaved.Xlabels)
+xlabel(ax,figBeingSaved.Xlabels);
+xlim(ax,figBeingSaved.Xlimits);
 ax.YTick = figBeingSaved.Ytics;
 ax.YTickLabel = figBeingSaved.Ylabels;
 ax.YLim = figBeingSaved.Ylimits;
 %{
 need to add limits and title to figure
 %}
-saveas(fig1,SaveFileName,'fig')
-saveas(fig1,SaveFileName,'png')
-saveas(fig1,SaveFileName,'svg')
+saveas(fig1,SaveFileName,'fig');
+saveas(fig1,SaveFileName,'png');
+saveas(fig1,SaveFileName,'svg');
 save(MatSaveFileName,"figBeingSaved",'-v7.3');

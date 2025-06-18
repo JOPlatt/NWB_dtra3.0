@@ -79,11 +79,9 @@ switch tagName
         OneChTag = event.Source.Tag;
         Chnum = str2double(OneChTag(end-2:end));
         app.drta_handles.p.VisableAnalog(Chnum+1) = event.Source.Value;
-        fNames = fieldnames(app.drta_Main.DiffDropdowns);
-        if app.Diff_CheckBox.Value == 1 && event.Source.Value == 1
-            app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 1;
-        else
-            app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 0;
+        if app.AnalogFigures.FiguresBuild == 1
+            delete(app.AnalogFigure_GridLayout.Children)
+            app.AnalogFigures.FiguresBuild = 0;
         end
 end
 

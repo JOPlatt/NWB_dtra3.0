@@ -18,25 +18,27 @@ ii_from=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.
     *app.drta_handles.draq_p.ActualRate+1);
 ii_to=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time...
     +display_interval)*app.drta_handles.draq_p.ActualRate);
-
+currentChan = find(app.drta_handles.p.VisableAnalog == 1);
 if app.AnalogFigures.FiguresBuild == 0
-    app.AnalogFigures.NumChannels = app.drta_handles.draq_d.num_board_adc_channels;
+    app.AnalogFigures.NumChannels = sum(app.drta_handles.p.VisableAnalog);
     ColumnSize = strings([1,app.AnalogFigures.NumChannels]);
     for ss = 1:app.AnalogFigures.NumChannels
         ColumnSize{ss} = '1x';
 
     end
     app.AnalogFigure_GridLayout.RowHeight = ColumnSize;
-    for uu = 1:app.AnalogFigures.NumChannels
+    for ut = 1:sum(app.drta_handles.p.VisableAnalog)
+        uu = currentChan(ut);
         chanName = sprintf('analogCh%.2d',uu);
         app.AnalogFigures.analogFig.(chanName) = uiaxes(app.AnalogFigure_GridLayout);
-        app.AnalogFigures.analogFig.(chanName).Layout.Row = app.AnalogFigures.NumChannels - uu + 1;
+        app.AnalogFigures.analogFig.(chanName).Layout.Row = app.AnalogFigures.NumChannels - ut + 1;
     end
 else
     cla(app.AnalogFigure_GridLayout.Children);
 end
 DsetNum = app.drta_handles.draq_d.num_amplifier_channels;
-for uu = 1:app.AnalogFigures.NumChannels
+for us = 1:sum(app.drta_handles.p.VisableAnalog)
+    uu = currentChan(us);
     chanName = sprintf('analogCh%.2d',uu);
     if uu <= 4
         whichCH = DsetNum+uu+1;
