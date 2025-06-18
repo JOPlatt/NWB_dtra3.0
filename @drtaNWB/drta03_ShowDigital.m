@@ -44,7 +44,11 @@ for uu = 1:app.DigitalFigures.NumChannels
         whichCH = DsetNum+1;
         data_shown = data(:,whichCH);
     elseif uu  == 2
-        whichCH = DsetNum+6;
+        if app.drta_handles.draq_d.num_board_adc_channels > 0
+            whichCH = DsetNum+6;
+        else
+            whichCH = DsetNum+2;
+        end
         data_shown = data(:,whichCH);
         shiftNum = app.ShiftDataBitand_EditField.Value;
         if shiftNum == 0

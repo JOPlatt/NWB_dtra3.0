@@ -234,8 +234,12 @@ classdef drtaNWB_exported < matlab.apps.AppBase
             PlotStatusUpdate(app,textUpdate,3)
             VisualChoice(app);
             drtaNWB_figureControl(app);
-            drta03_ShowDigital(app);
-            GenerateAnalogFigures(app);
+            if app.drta_handles.draq_d.num_board_dig_in_channels ~= 0
+                drta03_ShowDigital(app);
+            end
+            if app.drta_handles.draq_d.num_board_adc_channels ~= 0
+                GenerateAnalogFigures(app);
+            end
             
             textUpdate = ['Plot updated, now showing tiral ' ...
                 num2str(app.TrialNoDigit_EditField.Value)];

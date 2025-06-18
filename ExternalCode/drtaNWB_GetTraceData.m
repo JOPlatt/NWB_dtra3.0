@@ -129,6 +129,8 @@ if contains(handles.drtaWhichFile,'rhd')
         % if szadc2(1)==8
         %     data_this_trial(:,fullChsize-3)=board_adc_data(5,:)'; %this is done because the laser was recorded in a different ADC channel by Kira and Daniel
         % end
+    else
+        plc = szad(1)+handles.draq_d.num_board_dig_in_channels;
     end
 
     if handles.draq_d.num_board_dig_in_channels>0
