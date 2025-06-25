@@ -45,7 +45,12 @@ for uu = 1:app.DigitalFigures.NumChannels
         data_shown = data(:,whichCH);
     elseif uu  == 2
         if app.drta_handles.draq_d.num_board_adc_channels > 0
-            whichCH = DsetNum+6;
+            analogsize = app.drta_handles.draq_d.num_board_adc_channels;
+            if analogsize < 8
+                whichCH = DsetNum+analogsize+2;
+            else
+                whichCH = DsetNum+6;
+            end
         else
             whichCH = DsetNum+2;
         end
@@ -139,7 +144,9 @@ for uu = 1:app.DigitalFigures.NumChannels
                 plot(app.DigitalFigures.DigiFig.(chanName),[odor_on odor_on],[0 35],'-r');
             end
             app.DigitalFigures.DigiFig.(chanName).XTick = [];
-            ylim(app.DigitalFigures.DigiFig.(chanName),[(minAmt+minus10p) (maxAmt+added10p)]);
+            if (minAmt+minus10p) ~= (maxAmt+added10p)
+                ylim(app.DigitalFigures.DigiFig.(chanName),[(minAmt+minus10p) (maxAmt+added10p)]);
+            end
             xlim(app.DigitalFigures.DigiFig.(chanName),[1 1+display_interval*app.drta_handles.draq_p.ActualRate]);
         otherwise
             pName = sprintf('Digital CH %.2d',uu);

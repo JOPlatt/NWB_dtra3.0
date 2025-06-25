@@ -116,14 +116,20 @@ if contains(handles.drtaWhichFile,'rhd')
     % adding all digital recording to data matrix
     if exist('board_adc_data','var')
         szadc2=size(board_adc_data);
-        for bb = 1:4
-            data_this_trial(:,szad(1)+1+bb) = board_adc_data(bb,:)';
+        if szadc2(1) == 6
+            for bb = 1:4
+                data_this_trial(:,szad(1)+1+bb) = board_adc_data(bb,:)';
+            end
+            for hh = 1:szadc2(1)-4
+                plc = szad(1)+2+bb;
+                data_this_trial(:,plc+hh) = board_adc_data(bb+hh,:)';
+            end
+        else
+            for bb = 1:szadc2(1)
+                data_this_trial(:,szad(1)+1+bb) = board_adc_data(bb,:)';
+                plc = szad(1)+2+bb;
+            end
         end
-        for hh = 1:szadc2(1)-4
-            plc = szad(1)+2+bb;
-            data_this_trial(:,plc+hh) = board_adc_data(bb+hh,:)';
-        end
-        
         % fullChsize = szadc2(1) + szad(1)+2;
         % data_this_trial(:,szad(1)+2:fullChsize-1) = board_adc_data';
         % if szadc2(1)==8
