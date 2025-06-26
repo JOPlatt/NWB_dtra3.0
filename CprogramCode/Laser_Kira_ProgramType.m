@@ -16,6 +16,26 @@ end
 
 switch ProcessType
     case 1 % generates labels
+        app.drta_handles.draq_d.nEvPerType=zeros(1,17);
+        app.drta_handles.draq_d.nEventTypes=17;
+        app.drta_handles.draq_d.eventlabels=cell(1,17);
+        app.drta_handles.draq_d.eventlabels{1}='TStart';
+        app.drta_handles.draq_d.eventlabels{2}='OdorOn';
+        app.drta_handles.draq_d.eventlabels{3}='Hit';
+        app.drta_handles.draq_d.eventlabels{4}='HitL';
+        app.drta_handles.draq_d.eventlabels{5}='S+';
+        app.drta_handles.draq_d.eventlabels{6}='S+L';
+        app.drta_handles.draq_d.eventlabels{7}='Miss';
+        app.drta_handles.draq_d.eventlabels{8}='MissL';
+        app.drta_handles.draq_d.eventlabels{9}='CR';
+        app.drta_handles.draq_d.eventlabels{10}='CRL';
+        app.drta_handles.draq_d.eventlabels{11}='S-';
+        app.drta_handles.draq_d.eventlabels{12}='S-L';
+        app.drta_handles.draq_d.eventlabels{13}='FA';
+        app.drta_handles.draq_d.eventlabels{14}='FAL';
+        app.drta_handles.draq_d.eventlabels{15}='Reinf';
+        app.drta_handles.draq_d.eventlabels{16}='Laser';
+        app.drta_handles.draq_d.eventlabels{17}='Int';
     case 2 % trial exclusion
         %             %dropcspm
         %             timeBefore=str2double(get(app.drta_handles.timeBeforeFV,'String'));

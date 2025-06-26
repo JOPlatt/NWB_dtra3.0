@@ -16,6 +16,27 @@ end
 
 switch ProcessType
     case 1 % generates labels
+        prompt = {'Enter the number of odors used:'};
+        dlg_title = 'Input for osampler';
+        num_lines = 1;
+        answer = inputdlg(prompt,dlg_title,num_lines);
+        num_spmult_odors=str2num(answer{1});
+        app.drta_handles.draq_d.nsp_odors = num_spmult_odors;
+        
+        app.drta_handles.draq_d.nEvPerType=zeros(1,5+num_spmult_odors*3);
+        app.drta_handles.draq_d.nEventTypes=5+num_spmult_odors*3;
+        app.drta_handles.draq_d.eventlabels=cell(1,5+num_spmult_odors*3);
+        app.drta_handles.draq_d.eventlabels{1}='TStart';
+        app.drta_handles.draq_d.eventlabels{2}='OdorOn';
+        app.drta_handles.draq_d.eventlabels{3}='Reinf';
+        app.drta_handles.draq_d.eventlabels{4}='Hit';
+        app.drta_handles.draq_d.eventlabels{5}='Miss';
+        
+        for odNum=1:num_spmult_odors
+            app.drta_handles.draq_d.eventlabels{5+3*(odNum-1)+1}=['Odor' num2str(odNum) '-S+'];
+            app.drta_handles.draq_d.eventlabels{5+3*(odNum-1)+2}=['Odor' num2str(odNum) '-Hit'];
+            app.drta_handles.draq_d.eventlabels{5+3*(odNum-1)+3}=['Odor' num2str(odNum) '-Miss'];
+        end
     case 2 % trial exclusion
     case 3 % create events
         shiftdata = varargin{2};

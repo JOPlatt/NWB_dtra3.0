@@ -3012,10 +3012,7 @@ switch handles.p.which_c_program
         end
 end
 
-try
-    drta('setTrialNo',handles.w.drta,oldTrialNo);
-catch
-end
+
 
 handles=drta03_ExcludeBadLFP(app,handles);
 

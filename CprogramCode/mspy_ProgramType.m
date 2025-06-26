@@ -16,6 +16,18 @@ end
 
 switch ProcessType
     case 1 % generates labels
+        [FileName,PathName] = uigetfile('*.*','Enter location of keys.dat file');
+        fullName=[PathName,FileName];
+        fid=fopen(fullName);
+        sec_post_trigger=textscan(fid,'%d',1);
+        num_keys=textscan(fid,'%d',1);
+        key_names=textscan(fid,'%s',num_keys{1});
+        fclose(fid)
+        for ii=1:num_keys{1}
+            app.drta_handles.draq_d.eventlabels{ii}=key_names{1}(ii);
+        end
+        app.drta_handles.draq_d.nEvPerType=zeros(1,num_keys{1});
+        app.drta_handles.draq_d.nEventTypes=num_keys{1};
     case 2 % trial exclusion
     case 3 % create events
         shiftdata = varargin{2};

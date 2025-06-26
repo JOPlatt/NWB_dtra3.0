@@ -16,6 +16,24 @@ end
 
 switch ProcessType
     case 1 % generates labels
+        app.drta_handles.draq_d.nEvPerType=zeros(1,15);
+        app.drta_handles.draq_d.nEventTypes=15;
+        app.drta_handles.draq_d.eventlabels=cell(1,15);
+        app.drta_handles.draq_d.eventlabels{1}='TStart';
+        app.drta_handles.draq_d.eventlabels{2}='OdorOn';
+        app.drta_handles.draq_d.eventlabels{3}='NM_Hit';
+        app.drta_handles.draq_d.eventlabels{4}='AB';
+        app.drta_handles.draq_d.eventlabels{5}='NonMatch';
+        app.drta_handles.draq_d.eventlabels{6}='BA';
+        app.drta_handles.draq_d.eventlabels{7}='NM_Miss';
+        app.drta_handles.draq_d.eventlabels{8}='Blank';
+        app.drta_handles.draq_d.eventlabels{9}='M_CR';
+        app.drta_handles.draq_d.eventlabels{10}='AA';
+        app.drta_handles.draq_d.eventlabels{11}='Match';
+        app.drta_handles.draq_d.eventlabels{12}='BB';
+        app.drta_handles.draq_d.eventlabels{13}='M_FA';
+        app.drta_handles.draq_d.eventlabels{14}='Blank';
+        app.drta_handles.draq_d.eventlabels{15}='Reinf';
     case 2 % trial exclusion
     case 3 % create events
         trialNo = varargin{2};

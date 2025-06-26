@@ -16,6 +16,12 @@ end
 
 switch ProcessType
     case 1 % generates labels
+        app.drta_handles.draq_d.nEvPerType=zeros(1,2);
+        app.drta_handles.draq_d.nEventTypes=2;
+        app.drta_handles.draq_d.eventlabels=cell(1,2);
+        
+        app.drta_handles.draq_d.eventlabels{1}='LightOn';
+        app.drta_handles.draq_d.eventlabels{2}='LightOn';
     case 2 % trial exclusion
         data = varargin{2};
         trialNo = varargin{3};

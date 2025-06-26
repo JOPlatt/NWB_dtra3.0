@@ -16,6 +16,39 @@ end
 
 switch ProcessType
     case 1 % generates labels
+        prompt = {'Enter the number of odors used as S+:'};
+        dlg_title = 'Input for spm2mult';
+        num_lines = 1;
+        answer = inputdlg(prompt,dlg_title,num_lines);
+        num_splus_odors=str2num(answer{1});
+        app.drta_handles.draq_d.nsp_odors = num_splus_odors;
+        
+        prompt = {'Enter the number of odors used as S-:'};
+        dlg_title = 'Input for spm2mult';
+        num_lines = 1;
+        answer = inputdlg(prompt,dlg_title,num_lines);
+        num_sminus_odors=str2num(answer{1});
+        
+        num_spmult_odors=num_sminus_odors+num_splus_odors;
+        
+        app.drta_handles.draq_d.nEvPerType=zeros(1,3+num_spmult_odors*3);
+        app.drta_handles.draq_d.nEventTypes=3+num_spmult_odors*3;
+        app.drta_handles.draq_d.eventlabels=cell(1,3+num_spmult_odors*3);
+        app.drta_handles.draq_d.eventlabels{1}='TStart';
+        app.drta_handles.draq_d.eventlabels{2}='OdorOn';
+        app.drta_handles.draq_d.eventlabels{3}='Reinf';
+        
+        for odNum=1:num_splus_odors
+            app.drta_handles.draq_d.eventlabels{3+3*(odNum-1)+1}=['Odor' num2str(odNum) '-S+'];
+            app.drta_handles.draq_d.eventlabels{3+3*(odNum-1)+2}=['Odor' num2str(odNum) '-Hit'];
+            app.drta_handles.draq_d.eventlabels{3+3*(odNum-1)+3}=['Odor' num2str(odNum) '-Miss'];
+        end
+        
+        for odNum=num_splus_odors+1:num_spmult_odors
+            app.drta_handles.draq_d.eventlabels{3+3*(odNum-1)+1}=['Odor' num2str(odNum) '-S-'];
+            app.drta_handles.draq_d.eventlabels{3+3*(odNum-1)+2}=['Odor' num2str(odNum) '-CR'];
+            app.drta_handles.draq_d.eventlabels{3+3*(odNum-1)+3}=['Odor' num2str(odNum) '-FA'];
+        end
     case 2 % trial exclusion
     case 3 % create events
         shiftdata = varargin{2};
