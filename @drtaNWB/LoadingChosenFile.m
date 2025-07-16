@@ -59,8 +59,8 @@ ReadoutUpdate(app,textUpdate)
 app.Flags.fileLoaded = true;
 % 
 % allowing the data set to be saved
-app.Savematfile_Button.Enable = "on";
-app.CreateNWBfile_Button.Enable = "on";
+% app.Savematfile_Button.Enable = "on";
+% app.CreateNWBfile_Button.Enable = "on";
 %adding limits to the trial amount that can be seen
 app.Tnum_amt.Limits = [1,app.drta_Data.draq_d.noTrials];
 app.TrialNoDigit_EditField.Limits = [1,app.drta_Data.draq_d.noTrials];
