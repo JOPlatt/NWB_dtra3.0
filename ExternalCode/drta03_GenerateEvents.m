@@ -145,6 +145,9 @@ data.Electrode = ElectrodDataPerTrialtemp;
 data.Digital = DigitalDataPerTrialtemp;
 data.Analog = AnalogDataPerTrialtemp;
 data.TrialsNo = TrialSaved;
+data.ElectrodesSaved = app.drta_Save.p.VisableChannel;
+data.DigitalSaved = app.drta_Save.p.VisableDigital;
+data.AnalogSaved = app.drta_Save.p.VisableAnalog;
 if app.drta_Data.draq_p.dgordra==2
     %dg
     save([app.drta_Data.p.fullName(1:end-2),'mat'],'data','params','drta_p');
