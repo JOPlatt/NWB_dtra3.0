@@ -39,4 +39,4 @@ end
 
 app.Flags.SelectCh = 0;
 app.Flags.AllTrials = 1;
-app.drta_handles.p.which_c_program = cpNum;
+app.drta_Data.p.which_c_program = cpNum;

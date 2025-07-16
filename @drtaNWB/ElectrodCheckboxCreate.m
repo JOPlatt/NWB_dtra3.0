@@ -1,9 +1,9 @@
 function ElectrodCheckboxCreate(app)
 
 %finding the number of channels
-channel_total = app.drta_handles.draq_p.no_chans;
-digital_total = app.drta_handles.draq_d.num_board_dig_in_channels+2;
-analog_total = app.drta_handles.draq_d.num_board_adc_channels;
+channel_total = app.drta_Data.draq_p.no_chans;
+digital_total = size(app.drta_Data.Signals.Digital,2);
+analog_total = app.drta_Data.draq_d.num_board_adc_channels;
 %determining how many rows are needed based on only 10 per row
 if channel_total > 10
     RowsNeeded = (ceil(channel_total/10)*2) + 4;
@@ -24,9 +24,9 @@ CurrentRow = 1; %initial conditions
 CurrentColumn = 1;  %initial conditions
 %creating each label and check box
 app.drta_Main.ChannelNames = {};
-app.drta_handles.p.VisableChannel = zeros([channel_total,1]);
-app.drta_handles.p.VisableDigital = zeros([digital_total,1]);
-app.drta_handles.p.VisableAnalog = ones([analog_total,1]);
+app.drta_Data.p.VisableChannel = zeros([channel_total,1]);
+app.drta_Data.p.VisableDigital = zeros([digital_total,1]);
+app.drta_Data.p.VisableAnalog = ones([analog_total,1]);
 %preallocating y range choices
 app.drta_Main.Yrange.DDChoice = cell([1, channel_total+1]);
 app.drta_Main.Yrange.rangeVals = zeros([channel_total,1]);
@@ -73,7 +73,7 @@ for fn = 1:channel_total
     
     if fn < 16
         app.drta_Main.ChShown.(CurrentChNum).Value = 1;
-        app.drta_handles.p.VisableChannel(fn) = 1;
+        app.drta_Data.p.VisableChannel(fn) = 1;
     else
         app.drta_Main.ChShown.(CurrentChNum).Value = 0;
     end
@@ -151,7 +151,7 @@ for dch = 1:digital_total
     
     if dch < 3
         app.drta_Main.ChShown.(CurrentChNum).Value = 1;
-        app.drta_handles.p.VisableDigital(dch) = 1;
+        app.drta_Data.p.VisableDigital(dch) = 1;
     else
         app.drta_Main.ChShown.(CurrentChNum).Value = 0;
     end
@@ -169,6 +169,13 @@ for dch = 1:digital_total
         app.drta_Main.ChShown.(CurrentChNum).Tag = append('D-',num2str(dch-1));
     end
     app.drta_Main.ChShown.(CurrentChNum).ValueChangedFcn = createCallbackFcn(app,@AllChControl, true);
+    if dch < 3
+        app.drta_Main.ChShown.(CurrentChNum).Value = 1;
+        app.drta_Data.p.VisableChannelDigital(dch) = 1;
+    else
+        app.drta_Main.ChShown.(CurrentChNum).Value = 0;
+        app.drta_Data.p.VisableChannelDigital(dch) = 0;
+    end
     %moves the index to the next label location
     CurrentColumn = CurrentColumn + 2;
 end
@@ -196,6 +203,9 @@ for ach = 1:analog_total
         ChTitle = uilabel(app.Channels_GridLayout,'Text',append('A-',num2str(ach-1)));
         app.drta_Main.ChannelNames{ach} = append('A-',num2str(ach-1));
     end
+
+    
+
     %label settings
     ChTitle.HorizontalAlignment = 'center';
     ChTitle.FontSize = 14;
@@ -213,6 +223,7 @@ for ach = 1:analog_total
 
     %creating a checkbox
     app.drta_Main.ChShown.(CurrentChNum) = uicheckbox(app.Channels_GridLayout);
+    
     %checkbox settings
     app.drta_Main.ChShown.(CurrentChNum).Layout.Row = CurrentRow;
     app.drta_Main.ChShown.(CurrentChNum).Layout.Column = CurrentColumn + 1;
@@ -227,6 +238,7 @@ for ach = 1:analog_total
     app.drta_Main.ChShown.(CurrentChNum).ValueChangedFcn = createCallbackFcn(app,@AllChControl, true);
     %moves the index to the next label location
     app.drta_Main.ChShown.(CurrentChNum).Value = 1;
+    app.drta_Data.p.VisableChannelAnalog(ach) = 1;
     CurrentColumn = CurrentColumn + 2;
 end
 

@@ -41,5 +41,5 @@ switch DropChoice
     case 'Digital'
         app.Flags.DataShownAs = 12;
 end
-app.drta_handles.p.whichPlot = app.Flags.DataShownAs;
+app.drta_Data.p.whichPlot = app.Flags.DataShownAs;
 

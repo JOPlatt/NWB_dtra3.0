@@ -1,7 +1,7 @@
-function SaveFile(app)
+function SaveFile(app,~)
 
 CprogramChoice(app)
-handles = app.drta_handles;
+% handles = app.drta_Data;
 
 % if (isfield(handles.draq_d,'snip_samp'))
 %     try
@@ -38,4 +38,4 @@ handles = app.drta_handles;
 %     end
 % end
 
-drta03_GenerateEvents(app,handles);
+drta03_GenerateEvents(app);

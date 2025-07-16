@@ -30,9 +30,9 @@ function [varargout]=drta03_read_Intan_RHD2000_header(app)
 % file = d(end).name;
 
 if app.Flags.RunningWhat == 2
-    filename = app.drta_handles.p.fullName;
-    which_protocol = app.drta_handles.p.which_protocol;
-    handles = app.drta_handles;
+    filename = app.drta_Data.p.fullName;
+    which_protocol = app.drta_Data.p.which_protocol;
+    handles = app.drta_Data;
 else
     filename = fullfile(app.drta_data.FileLoc,app.drta_data.FileName);
     which_protocol = app.FileProcInfo(1,app.Flags.CurrentNum);

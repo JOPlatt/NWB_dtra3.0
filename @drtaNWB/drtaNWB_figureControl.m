@@ -3,7 +3,7 @@ function drtaNWB_figureControl(app)
 This function is used to control what is plotted on each figure
 %}
 % ChPlace = 2;
-% for nk = 1: app.drta_handles.draq_p.no_chans
+% for nk = 1: app.drta_Data.draq_p.no_chans
 %     ChannelValues(nk) = app.Channels_GridLayout.Children(ChPlace).Value;
 %     if nk <=16
 %         ChPlace = ChPlace + 3;
@@ -13,15 +13,15 @@ This function is used to control what is plotted on each figure
 % 
 % end
 % %setting inital channel values
-% app.drta_handles.p.VisableChannel = ChannelValues;
-noch = size(app.drta_handles.p.VisableChannel,1);
+% app.drta_Data.p.VisableChannel = ChannelValues;
+noch = size(app.drta_Data.p.VisableChannel,1);
 
-currentChan = find(app.drta_handles.p.VisableChannel == 1);
+currentChan = find(app.drta_Data.p.VisableChannel == 1);
 
 %pulling in relevant information about what needs to be plotted
-data = drtaNWB_GetTraceData(app.drta_handles);
-digi = data(:,end);
-
+drtaNWB_GetTraceData(app,app.Tnum_amt.Value);
+digi = app.drta_Data.Signals.Digital(:,end);
+data = app.drta_Data.Signals.Electrode;
 %determining the outcome fo the trial being plotted
 try
     if app.DataShiftBitand_EditField.Value == 0
@@ -36,36 +36,36 @@ try
     end
     %Please note that there are problems with the start of the trial.
     %Because of this we start looking 2 sec and beyond
-    shiftdata30(1:app.drta_handles.draq_p.ActualRate*app.drta_handles.p.exclude_secs)=0;
+    shiftdata30(1:app.drta_Data.draq_p.ActualRate*app.drta_Data.p.exclude_secs)=0;
 
     %determining which protocol is being used
     odor_on=[];
-    if app.drta_handles.p.which_protocol == 1 || app.drta_handles.p.which_protocol == 6
+    if app.drta_Data.p.which_protocol == 1 || app.drta_Data.p.which_protocol == 6
         %dropcspm
         odor_on=find(shiftdata30==18,1,'first');
-    elseif app.drta_handles.p.which_protocol == 5
+    elseif app.drta_Data.p.which_protocol == 5
         %dropcspm conc
         t_start=find(shift_dropc_nsampler==1,1,'first');
-        if (sum((shift_dropc_nsampler>=2)&(shift_dropc_nsampler<=7))>2.4*app.drta_handles.draq_p.ActualRate)&...
+        if (sum((shift_dropc_nsampler>=2)&(shift_dropc_nsampler<=7))>2.4*app.drta_Data.draq_p.ActualRate)&...
                 ~isempty(find((shift_dropc_nsampler(t_start:end)>=2)&(shift_dropc_nsampler(t_start:end)<=7),1,'first'))
             odor_on=t_start+find((shift_dropc_nsampler(t_start:end)>=2)&(shift_dropc_nsampler(t_start:end)<=7),1,'first')-1;
         end
     end
 
     %determining the outcome
-    if sum(shiftdata30==8)>0.05*app.drta_handles.draq_p.ActualRate
+    if sum(shiftdata30==8)>0.05*app.drta_Data.draq_p.ActualRate
         app.TrialOutcome.Text = 'Hit';
-    elseif sum(shiftdata30==10)>0.05*app.drta_handles.draq_p.ActualRate
+    elseif sum(shiftdata30==10)>0.05*app.drta_Data.draq_p.ActualRate
         app.TrialOutcome.Text = 'Miss';
-    elseif sum(shiftdata30==12)>0.05*app.drta_handles.draq_p.ActualRate
+    elseif sum(shiftdata30==12)>0.05*app.drta_Data.draq_p.ActualRate
         app.TrialOutcome.Text = 'CR';
-    elseif sum(shiftdata30==14)>0.05*app.drta_handles.draq_p.ActualRate
+    elseif sum(shiftdata30==14)>0.05*app.drta_Data.draq_p.ActualRate
         app.TrialOutcome.Text = 'FA';
     elseif isscalar(find(shiftdata30>=1,1,'first')) && ...
             (length(find(shiftdata30==8,1,'first'))~=1) && ...
             (length(find(shiftdata30==10,1,'first'))~=1) && ...
             (length(find(shiftdata30==12,1,'first'))~=1) && ...
-            (length(find(shiftdata30>0))>app.drta_handles.draq_p.ActualRate*0.75)
+            (length(find(shiftdata30>0))>app.drta_Data.draq_p.ActualRate*0.75)
         app.TrialOutcome.Text = 'Short';
     else
         app.TrialOutcome.Text = 'Inter';
@@ -75,7 +75,7 @@ end
 
 if app.Flags.DataShownAs ~=12
     %Now proceed to plot all channels
-    switch app.drta_handles.p.whichPlot
+    switch app.drta_Data.p.whichPlot
         case 1
             %Raw data
             data1=data;
@@ -111,21 +111,21 @@ if app.Flags.DataShownAs ~=12
 
 
     %filtering the data
-    if app.drta_handles.p.whichPlot ~= 1
+    if app.drta_Data.p.whichPlot ~= 1
         app.min_amt.Value = fpass(1);
         app.max_amt.Value = fpass(2);
 
-        app.drta_handles.p.lfp.minLFP=fpass(1);
-        app.drta_handles.p.lfp.maxLFP=fpass(2);
+        app.drta_Data.p.lfp.minLFP=fpass(1);
+        app.drta_Data.p.lfp.maxLFP=fpass(2);
         FO = app.Filterorder_EditField.Value;
         bpFilt = designfilt('bandpassiir','FilterOrder',FO, ...
             'HalfPowerFrequency1',fpass(1),'HalfPowerFrequency2',fpass(2), ...
-            'SampleRate',floor(app.drta_handles.draq_p.ActualRate));
+            'SampleRate',floor(app.drta_Data.draq_p.ActualRate));
         data1=filtfilt(bpFilt,data);
 
-        if app.drta_handles.p.whichPlot==11
+        if app.drta_Data.p.whichPlot==11
             %Calculate the moving variance
-            data1=movvar(data1,ceil(0.05*app.drta_handles.draq_p.ActualRate));
+            data1=movvar(data1,ceil(0.05*app.drta_Data.draq_p.ActualRate));
         end
     end
     %{
@@ -137,7 +137,7 @@ if app.Flags.DataShownAs ~=12
         data2=data1;
         for tetr=1:4
             for jj=1:4
-                ChShown = app.drta_handles.p.VisableChannel((tetr-1)*4+jj);
+                ChShown = app.drta_Data.p.VisableChannel((tetr-1)*4+jj);
                 DiffChoice = app.drta_Main.ChDiffChoice((tetr-1)*4+jj);
                 if ChShown == 1 && DiffChoice >= 3
                     %Subtract one of the channels
@@ -155,10 +155,10 @@ if app.Flags.DataShownAs ~=12
     rangespace = -0.7;
     NumberSeen = 1;
     tagNum = 2;
-    SeenNumber = sum(app.drta_handles.p.VisableChannel);
+    SeenNumber = sum(app.drta_Data.p.VisableChannel);
     AllChNames = cell([SeenNumber, 1]);
     for ss = 1:noch
-        if app.drta_handles.p.VisableChannel(ss) == 1
+        if app.drta_Data.p.VisableChannel(ss) == 1
             %{
             Processing the data for each plot and showing each result on a
             single figure            
@@ -169,17 +169,17 @@ if app.Flags.DataShownAs ~=12
         end
         tagNum = tagNum + 3;
     end
-    lowestTic = cell([sum(app.drta_handles.p.VisableChannel) 1]);
-    lowTic= cell([sum(app.drta_handles.p.VisableChannel) 1]);
-    higerTic = cell([sum(app.drta_handles.p.VisableChannel) 1]);
-    highestTic = cell([sum(app.drta_handles.p.VisableChannel) 1]);
+    lowestTic = cell([sum(app.drta_Data.p.VisableChannel) 1]);
+    lowTic= cell([sum(app.drta_Data.p.VisableChannel) 1]);
+    higerTic = cell([sum(app.drta_Data.p.VisableChannel) 1]);
+    highestTic = cell([sum(app.drta_Data.p.VisableChannel) 1]);
     % determining the x-axis interval
     if app.E_all_CheckBox.Value == 1
-        display_interval = app.drta_handles.p.display_interval;
+        display_interval = app.drta_Data.p.display_interval;
     else
         display_interval = app.drta_Main.Xinterval.electrod;
     end
-    maxInterval = size(data,1)/app.drta_handles.draq_p.ActualRate;
+    maxInterval = size(data,1)/app.drta_Data.draq_p.ActualRate;
     
     if display_interval > maxInterval
         display_interval = maxInterval;
@@ -187,15 +187,15 @@ if app.Flags.DataShownAs ~=12
         app.Interval_amt.Limits = [0 maxInterval];
         app.drta_Main.Xinterval.electrod = maxInterval;
     end
-    for ik = 1:sum(app.drta_handles.p.VisableChannel)
+    for ik = 1:sum(app.drta_Data.p.VisableChannel)
         ii = currentChan(ik);
 
-        app.drta_handles.plot.s_handle.Visible = "on";
+        app.drta_Data.plot.s_handle.Visible = "on";
 
-        ii_from=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time)...
-            *app.drta_handles.draq_p.ActualRate+1);
-        ii_to=floor((app.drta_handles.draq_p.acquire_display_start+app.drta_handles.p.start_display_time...
-            +display_interval)*app.drta_handles.draq_p.ActualRate);
+        ii_from=floor((app.drta_Data.draq_p.acquire_display_start+app.drta_Data.p.start_display_time)...
+            *app.drta_Data.draq_p.ActualRate+1);
+        ii_to=floor((app.drta_Data.draq_p.acquire_display_start+app.drta_Data.p.start_display_time...
+            +display_interval)*app.drta_Data.draq_p.ActualRate);
 
         sz_dat=length(data1);
         tim=[0 sz_dat];
@@ -221,29 +221,29 @@ if app.Flags.DataShownAs ~=12
             two_half_med_SD=100;
         end
 
-        if app.drta_handles.p.set2p5SD==1
-            app.drta_handles.p.threshold(ii)=two_half_med_SD;
+        if app.drta_Data.p.set2p5SD==1
+            app.drta_Data.p.threshold(ii)=two_half_med_SD;
         end
-        if app.drta_handles.p.setm2p5SD==1
-            app.drta_handles.p.threshold(ii)=-two_half_med_SD;
+        if app.drta_Data.p.setm2p5SD==1
+            app.drta_Data.p.threshold(ii)=-two_half_med_SD;
         end
 
         %Set threshold to nxSD
-        nxSD=app.drta_handles.p.nxSD*median(sdvec);
+        nxSD=app.drta_Data.p.nxSD*median(sdvec);
 
         %If nxSD=0 this is the differentially subtracted channel
         if nxSD==0
             nxSD=1000;
-            app.drta_handles.p.threshold(ii)=nxSD;
+            app.drta_Data.p.threshold(ii)=nxSD;
         end
 
-        if app.drta_handles.p.setnxSD==1
-            app.drta_handles.p.threshold(ii)=nxSD;
+        if app.drta_Data.p.setnxSD==1
+            app.drta_Data.p.threshold(ii)=nxSD;
         end
 
         %Set threshold to uv
-        if app.drta_handles.p.setThr==1
-            app.drta_handles.p.threshold(ii)=app.drta_handles.p.thrToSet;
+        if app.drta_Data.p.setThr==1
+            app.drta_Data.p.threshold(ii)=app.drta_Data.p.thrToSet;
         end
         %{
             Setting up the data into a matrix where each channel is
@@ -258,9 +258,9 @@ if app.Flags.DataShownAs ~=12
         %stacking the data
         
         for oy = 1:size(data1(ii_from:ii_to,ii),1)
-            if data1(ii_from+oy-1,ii) >= app.drta_Main.Yrange.rangeVals(ii) && sum(app.drta_handles.p.VisableChannel) > 1
+            if data1(ii_from+oy-1,ii) >= app.drta_Main.Yrange.rangeVals(ii) && sum(app.drta_Data.p.VisableChannel) > 1
                 MaxedData(oy,1) = app.drta_Main.Yrange.rangeVals(ii);
-            elseif data1(ii_from+oy-1,ii) <= -app.drta_Main.Yrange.rangeVals(ii) && sum(app.drta_handles.p.VisableChannel) > 1
+            elseif data1(ii_from+oy-1,ii) <= -app.drta_Main.Yrange.rangeVals(ii) && sum(app.drta_Data.p.VisableChannel) > 1
                 MaxedData(oy,1) = -app.drta_Main.Yrange.rangeVals(ii);
             else
                 MaxedData(oy,1) = data1(ii_from+oy-1,ii);
@@ -273,7 +273,7 @@ if app.Flags.DataShownAs ~=12
             (floor(-2*app.drta_Main.Yrange.rangeVals(ii)/3)); ...
             (floor(2*app.drta_Main.Yrange.rangeVals(ii)/3)); ...
             MaxedData];
-        if sum(app.drta_handles.p.VisableChannel) > 1
+        if sum(app.drta_Data.p.VisableChannel) > 1
             lowestTic{ik} = num2str(-app.drta_Main.Yrange.rangeVals(ii));
             lowTic{ik} = num2str(floor(-2*app.drta_Main.Yrange.rangeVals(ii)/3));
             higerTic{ik} = num2str(floor(2*app.drta_Main.Yrange.rangeVals(ii)/3));
@@ -326,7 +326,7 @@ if app.Flags.DataShownAs ~=12
         YaxLim = [-app.drta_Main.Yrange.rangeVals(ii) app.drta_Main.Yrange.rangeVals(ii)];
     end
     xlabel(PlotSpace,'Time (sec)');
-    if sum(app.drta_handles.p.VisableChannel) < 11
+    if sum(app.drta_Data.p.VisableChannel) < 11
         combinedTicks = sort([Mlimit(1,:),Mlimit(2,:),ChLables(1,:),tLabels(1,:)],'ascend');
     else
         combinedTicks = sort([Mlimit(1,:),Mlimit(2,:),ChLables(1,:)],'ascend');
@@ -337,13 +337,13 @@ if app.Flags.DataShownAs ~=12
     for ss = 1:size(AllChNames,1)
         allTickLabels(nameplace) = lowestTic(ss);
         nameplace = nameplace + 1;
-        if sum(app.drta_handles.p.VisableChannel) < 11
+        if sum(app.drta_Data.p.VisableChannel) < 11
             allTickLabels(nameplace) = lowTic(ss);
             nameplace = nameplace + 1;
         end
         allTickLabels(nameplace) = AllChNames(ss);
         nameplace = nameplace + 1;
-        if sum(app.drta_handles.p.VisableChannel) < 11
+        if sum(app.drta_Data.p.VisableChannel) < 11
             allTickLabels(nameplace) = higerTic(ss);
             nameplace = nameplace + 1;
         end
@@ -362,31 +362,31 @@ if app.Flags.DataShownAs ~=12
 
     dt=display_interval/5;
     dt=round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
-    d_samples=dt*app.drta_handles.draq_p.ActualRate;
-    PlotSpace.XTick = 0:d_samples:display_interval*app.drta_handles.draq_p.ActualRate;
+    d_samples=dt*app.drta_Data.draq_p.ActualRate;
+    PlotSpace.XTick = 0:d_samples:display_interval*app.drta_Data.draq_p.ActualRate;
     PlotSpace.FontSize = 12;
-    app.drta_Main.ChannelTime = 0:d_samples:display_interval*app.drta_handles.draq_p.ActualRate;
-    time=app.drta_handles.p.start_display_time;
+    app.drta_Main.ChannelTime = 0:d_samples:display_interval*app.drta_Data.draq_p.ActualRate;
+    time=app.drta_Data.p.start_display_time;
     jj=1;
-    while time<=(app.drta_handles.p.start_display_time+display_interval)
+    while time<=(app.drta_Data.p.start_display_time+display_interval)
         tick_label{jj}=num2str(time);
         time=time+dt;
         jj=jj+1;
     end
     PlotSpace.XTickLabel = tick_label;
     app.drta_Main.xticlabels = tick_label;
-    xlim(PlotSpace,[0 display_interval*app.drta_handles.draq_p.ActualRate]);
+    xlim(PlotSpace,[0 display_interval*app.drta_Data.draq_p.ActualRate]);
     app.drta_Plot.traces.NumChShown = ik;
     app.drta_Plot.traces.normData = app.drta_Main.ChannelData;
     app.drta_Plot.traces.rawData = CombinedRawDataSets;
     app.drta_Plot.traces.Ytics = combinedTicks;
     app.drta_Plot.traces.Ylabels = allTickLabels;
     app.drta_Plot.traces.Ylimits = YaxLim;
-    app.drta_Plot.traces.Xtics =  0:d_samples:display_interval*app.drta_handles.draq_p.ActualRate;
+    app.drta_Plot.traces.Xtics =  0:d_samples:display_interval*app.drta_Data.draq_p.ActualRate;
     app.drta_Plot.traces.Xticlabels = app.drta_Main.xticlabels;
     app.drta_Plot.traces.Xlabels = 'Time (sec)';
     app.drta_Plot.traces.Title = app.TrialOutcome.Text;
-    app.drta_Plot.traces.Xlimits = [0 display_interval*app.drta_handles.draq_p.ActualRate];
+    app.drta_Plot.traces.Xlimits = [0 display_interval*app.drta_Data.draq_p.ActualRate];
 
 
 end

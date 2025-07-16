@@ -16,12 +16,12 @@ end
 
 switch ProcessType
     case 1 % generates labels
-        app.drta_handles.draq_d.nEvPerType=zeros(1,2);
-        app.drta_handles.draq_d.nEventTypes=2;
-        app.drta_handles.draq_d.eventlabels=cell(1,2);
+        app.drta_Data.draq_d.nEvPerType=zeros(1,2);
+        app.drta_Data.draq_d.nEventTypes=2;
+        app.drta_Data.draq_d.eventlabels=cell(1,2);
         
-        app.drta_handles.draq_d.eventlabels{1}='LightOn';
-        app.drta_handles.draq_d.eventlabels{2}='LightOn';
+        app.drta_Data.draq_d.eventlabels{1}='LightOn';
+        app.drta_Data.draq_d.eventlabels{2}='LightOn';
     case 2 % trial exclusion
         data = varargin{2};
         trialNo = varargin{3};
@@ -34,15 +34,15 @@ switch ProcessType
         min_y=mean(digidata(digidata<(minmin_y+(maxmax_y-minmin_y)/2)));
 
         if (max_y-min_y)>200
-            timeBefore=str2double(get(app.drta_handles.timeBeforeFV,'String'));
-            firstLightOn=find(digidata>(min_y+(max_y-min_y)/2),1,'first')/app.drta_handles.draq_p.ActualRate;
+            timeBefore=str2double(get(app.drta_Data.timeBeforeFV,'String'));
+            firstLightOn=find(digidata>(min_y+(max_y-min_y)/2),1,'first')/app.drta_Data.draq_p.ActualRate;
             if firstLightOn<timeBefore
-                app.drta_handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
-                app.drta_handles.p.trial_allch_processed(trialNo)=0;
+                app.drta_Data.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
+                app.drta_Data.p.trial_allch_processed(trialNo)=0;
             end
         else
-            app.drta_handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
-            app.drta_handles.p.trial_allch_processed(trialNo)=0;
+            app.drta_Data.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
+            app.drta_Data.p.trial_allch_processed(trialNo)=0;
         end
     case 3 % create events
         data = varargin{2};
@@ -60,16 +60,16 @@ switch ProcessType
 
         if (max_y-min_y)>200
             firstdig=find(digidata>min_y+0.5*(max_y-min_y),1,'first');
-            app.drta_handles.draq_d.noEvents=app.drta_handles.draq_d.noEvents+1;
-            app.drta_handles.draq_d.events(app.drta_handles.draq_d.noEvents)=app.drta_handles.draq_d.t_trial(trialNo)+firstdig/app.drta_handles.draq_p.ActualRate;
-            app.drta_handles.draq_d.eventType(app.drta_handles.draq_d.noEvents)=1;
-            app.drta_handles.draq_d.nEvPerType(1)=app.drta_handles.draq_d.nEvPerType(1)+1;
+            app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
+            app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+firstdig/app.drta_Data.draq_p.ActualRate;
+            app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=1;
+            app.drta_Data.draq_d.nEvPerType(1)=app.drta_Data.draq_d.nEvPerType(1)+1;
 
 
-            app.drta_handles.draq_d.noEvents=app.drta_handles.draq_d.noEvents+1;
-            app.drta_handles.draq_d.events(app.drta_handles.draq_d.noEvents)=app.drta_handles.draq_d.t_trial(trialNo)+firstdig/app.drta_handles.draq_p.ActualRate;
-            app.drta_handles.draq_d.eventType(app.drta_handles.draq_d.noEvents)=2;
-            app.drta_handles.draq_d.nEvPerType(2)=app.drta_handles.draq_d.nEvPerType(2)+1;
+            app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
+            app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+firstdig/app.drta_Data.draq_p.ActualRate;
+            app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=2;
+            app.drta_Data.draq_d.nEvPerType(2)=app.drta_Data.draq_d.nEvPerType(2)+1;
         else
             bad_trial=1;
         end  %if (max_y-min_y)>200
@@ -79,23 +79,23 @@ switch ProcessType
             %accompanying t_start and odor_on
 
             %First exclude this weird trial
-            app.drta_handles.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
-            app.drta_handles.p.trial_allch_processed(trialNo)=0;
+            app.drta_Data.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
+            app.drta_Data.p.trial_allch_processed(trialNo)=0;
 
             %Then add this one
-            app.drta_handles.draq_d.noEvents=app.drta_handles.draq_d.noEvents+1;
-            app.drta_handles.draq_d.events(app.drta_handles.draq_d.noEvents)=app.drta_handles.draq_d.t_trial(trialNo)+2;
-            app.drta_handles.draq_d.eventType(app.drta_handles.draq_d.noEvents)=1;
-            app.drta_handles.draq_d.nEvPerType(1)=app.drta_handles.draq_d.nEvPerType(1)+1;
+            app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
+            app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+2;
+            app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=1;
+            app.drta_Data.draq_d.nEvPerType(1)=app.drta_Data.draq_d.nEvPerType(1)+1;
 
-            app.drta_handles.draq_d.noEvents=app.drta_handles.draq_d.noEvents+1;
-            app.drta_handles.draq_d.events(app.drta_handles.draq_d.noEvents)=app.drta_handles.draq_d.t_trial(trialNo)+2;
-            app.drta_handles.draq_d.eventType(app.drta_handles.draq_d.noEvents)=2;
-            app.drta_handles.draq_d.nEvPerType(2)=app.drta_handles.draq_d.nEvPerType(2)+1;
+            app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
+            app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+2;
+            app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=2;
+            app.drta_Data.draq_d.nEvPerType(2)=app.drta_Data.draq_d.nEvPerType(2)+1;
         end
 
 
     case 4 % setup for block number
-        app.drta_handles.draq_d.blocks(1,1)=app.drta_handles.draq_d.t_trial(1)-9;
-        app.drta_handles.draq_d.blocks(1,2)=app.drta_handles.draq_d.t_trial(end)+9;
+        app.drta_Data.draq_d.blocks(1,1)=app.drta_Data.draq_d.t_trial(1)-9;
+        app.drta_Data.draq_d.blocks(1,2)=app.drta_Data.draq_d.t_trial(end)+9;
 end

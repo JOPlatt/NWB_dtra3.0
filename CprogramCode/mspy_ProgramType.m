@@ -24,10 +24,10 @@ switch ProcessType
         key_names=textscan(fid,'%s',num_keys{1});
         fclose(fid)
         for ii=1:num_keys{1}
-            app.drta_handles.draq_d.eventlabels{ii}=key_names{1}(ii);
+            app.drta_Data.draq_d.eventlabels{ii}=key_names{1}(ii);
         end
-        app.drta_handles.draq_d.nEvPerType=zeros(1,num_keys{1});
-        app.drta_handles.draq_d.nEventTypes=num_keys{1};
+        app.drta_Data.draq_d.nEvPerType=zeros(1,num_keys{1});
+        app.drta_Data.draq_d.nEventTypes=num_keys{1};
     case 2 % trial exclusion
     case 3 % create events
         shiftdata = varargin{2};
@@ -35,22 +35,22 @@ switch ProcessType
         current_ii=1;
         last_event=-10000000;
         while current_ii<length(shiftdata)
-            event=find(shiftdata(current_ii:length(shiftdata))>=2+app.drta_handles.p.mspy_key_offset,1,'first');
+            event=find(shiftdata(current_ii:length(shiftdata))>=2+app.drta_Data.p.mspy_key_offset,1,'first');
             if ~isempty(event)
-                if current_ii+event-1-last_event>app.drta_handles.p.mspy_key_offset*app.drta_handles.draq_p.ActualRate
-                    eventNo=(shiftdata(current_ii+event-1)-app.drta_handles.p.mspy_key_offset)/2;
-                    app.drta_handles.draq_d.noEvents=app.drta_handles.draq_d.noEvents+1;
-                    app.drta_handles.draq_d.events(app.drta_handles.draq_d.noEvents)=app.drta_handles.draq_d.t_trial(trialNo)+event/app.drta_handles.draq_p.ActualRate;
-                    app.drta_handles.draq_d.eventType(app.drta_handles.draq_d.noEvents)=eventNo;
-                    app.drta_handles.draq_d.nEvPerType(eventNo)=app.drta_handles.draq_d.nEvPerType(eventNo)+1;
+                if current_ii+event-1-last_event>app.drta_Data.p.mspy_key_offset*app.drta_Data.draq_p.ActualRate
+                    eventNo=(shiftdata(current_ii+event-1)-app.drta_Data.p.mspy_key_offset)/2;
+                    app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
+                    app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+event/app.drta_Data.draq_p.ActualRate;
+                    app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=eventNo;
+                    app.drta_Data.draq_d.nEvPerType(eventNo)=app.drta_Data.draq_d.nEvPerType(eventNo)+1;
                     last_evType=eventNo;
                 else
-                    eventNo=(shiftdata(current_ii+event-1)-app.drta_handles.p.mspy_key_offset)/2;
+                    eventNo=(shiftdata(current_ii+event-1)-app.drta_Data.p.mspy_key_offset)/2;
                     if eventNo~=last_evType
-                        app.drta_handles.draq_d.noEvents=app.drta_handles.draq_d.noEvents+1;
-                        app.drta_handles.draq_d.events(app.drta_handles.draq_d.noEvents)=app.drta_handles.draq_d.t_trial(trialNo)+event/app.drta_handles.draq_p.ActualRate;
-                        app.drta_handles.draq_d.eventType(app.drta_handles.draq_d.noEvents)=eventNo;
-                        app.drta_handles.draq_d.nEvPerType(eventNo)=app.drta_handles.draq_d.nEvPerType(eventNo)+1;
+                        app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
+                        app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+event/app.drta_Data.draq_p.ActualRate;
+                        app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=eventNo;
+                        app.drta_Data.draq_d.nEvPerType(eventNo)=app.drta_Data.draq_d.nEvPerType(eventNo)+1;
                         last_evType=eventNo;
                     end
                 end

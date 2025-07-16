@@ -14,7 +14,7 @@ switch tagName
         fNames = fieldnames(app.drta_Main.DiffDropdowns);
         for ii = 1:size(AllChnames,1)
             app.drta_Main.ChShown.(AllChnames{ii}).Value = 0;
-            app.drta_handles.p.VisableChannel(ii) = 0;
+            app.drta_Data.p.VisableChannel(ii) = 0;
             app.drta_Main.CombineChannel.UnselectAll.Value = 0;
             app.drta_Main.DiffDropdowns.(fNames{ii}).Enable = 0;
         end
@@ -28,14 +28,14 @@ switch tagName
         end
         AllDiffNames = fieldnames(app.drta_Main.DiffDropdowns);
         for ii = 1:size(AllDiffNames,1)
-            if app.drta_handles.p.VisableChannel(ii) == 1
+            if app.drta_Data.p.VisableChannel(ii) == 1
                 app.drta_Main.DiffDropdowns.(AllDiffNames{ii}).Enable = ShowingDD;
             end
         end
     case 'AllChDiff'
         AllDiffNames = fieldnames(app.drta_Main.DiffDropdowns);
-        for ii = 1:size(app.drta_handles.p.VisableChannel,1)
-            if app.drta_handles.p.VisableChannel(ii) == 1
+        for ii = 1:size(app.drta_Data.p.VisableChannel,1)
+            if app.drta_Data.p.VisableChannel(ii) == 1
                 OneCh.Source.Tag = app.drta_Main.DiffDropdowns.(AllDiffNames{ii}).Tag;
                 app.drta_Main.DiffDropdowns.(AllDiffNames{ii}).Value = event.Source.Value;
                 OneCh.Source.Value = event.Source.Value;
@@ -46,7 +46,7 @@ switch tagName
     case 'SingleCh'
         OneChTag = event.Source.Tag;
         Chnum = str2double(OneChTag(end-2:end));
-        app.drta_handles.p.VisableChannel(Chnum+1) = event.Source.Value;
+        app.drta_Data.p.VisableChannel(Chnum+1) = event.Source.Value;
         fNames = fieldnames(app.drta_Main.DiffDropdowns);
         if app.Diff_CheckBox.Value == 1 && event.Source.Value == 1
             app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 1;
@@ -57,7 +57,7 @@ switch tagName
         AllChnames = fieldnames(app.drta_Main.ChShown);
         fNames = fieldnames(app.drta_Main.DiffDropdowns);
         for ii = 1:size(AllChnames,1)
-            if app.drta_handles.p.VisableChannel(ii) == 1
+            if app.drta_Data.p.VisableChannel(ii) == 1
                 app.drta_Main.ChShown.(AllChnames{ii}).Value = 1;
                 app.drta_Main.DiffDropdowns.(fNames{ii}).Enable = 1;
             else
@@ -68,19 +68,23 @@ switch tagName
     case 'DigitalCh'
         OneChTag = event.Source.Tag;
         Chnum = str2double(OneChTag(end-2:end));
-        app.drta_handles.p.VisableDigital(Chnum+1) = event.Source.Value;
+        app.drta_Data.p.VisableDigital(Chnum+1) = event.Source.Value;
         fNames = fieldnames(app.drta_Main.DiffDropdowns);
         if app.Diff_CheckBox.Value == 1 && event.Source.Value == 1
             app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 1;
         else
             app.drta_Main.DiffDropdowns.(fNames{Chnum+1}).Enable = 0;
         end
+        if app.DigitalFigures.FiguresBuild == 1
+            delete(app.DigitalPlot_Grid.Children);
+            app.DigitalFigures.FiguresBuild = 0;
+        end
     case 'AnalogCh'
         OneChTag = event.Source.Tag;
         Chnum = str2double(OneChTag(end-2:end));
-        app.drta_handles.p.VisableAnalog(Chnum+1) = event.Source.Value;
+        app.drta_Data.p.VisableAnalog(Chnum+1) = event.Source.Value;
         if app.AnalogFigures.FiguresBuild == 1
-            delete(app.AnalogFigure_GridLayout.Children)
+            delete(app.AnalogFigure_GridLayout.Children);
             app.AnalogFigures.FiguresBuild = 0;
         end
 end
