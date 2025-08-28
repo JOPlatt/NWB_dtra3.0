@@ -7,7 +7,7 @@ digital_total = size(app.drta_Data.Signals.Digital,2);
 analog_total = app.drta_Data.draq_d.num_board_adc_channels;
 %determining how many rows are needed based on only 10 per row
 if channel_total > 10
-    RowsNeeded = (ceil(channel_total/10)) + 6;
+    RowsNeeded = (ceil(channel_total/10)) + 7;
     RowsNeeded = RowsNeeded + (ceil(digital_total/10));
     RowsNeeded = RowsNeeded + (ceil(analog_total/10));
 else
@@ -32,17 +32,15 @@ app.drta_Save.Yrange.DDChoice = cell([1, channel_total+1]);
 app.drta_Save.Yrange.rangeVals = zeros([channel_total,1]);
 app.drta_Save.Yrange.DDChoice{1} = sprintf('all');
 
-
+app.drta_Save.Labels.Electrodes = uilabel(app.Save_GridLayout,'Text',"Electrode Channels");
+app.drta_Save.Labels.Electrodes.HorizontalAlignment = 'center';
+app.drta_Save.Labels.Electrodes.FontSize = 14;
+app.drta_Save.Labels.Electrodes.FontName = 'Times New Roman';
+app.drta_Save.Labels.Electrodes.Layout.Row = CurrentRow;
+app.drta_Save.Labels.Electrodes.Layout.Column = [1 3];
+CurrentRow = CurrentRow + 1;
 for fn = 1:channel_total
-    if fn == 1
-        app.drta_Save.Labels.Electrodes = uilabel(app.Save_GridLayout,'Text',"Electrode Channels");
-        app.drta_Save.Labels.Electrodes.HorizontalAlignment = 'center';
-        app.drta_Save.Labels.Electrodes.FontSize = 14;
-        app.drta_Save.Labels.Electrodes.FontName = 'Times New Roman';
-        app.drta_Save.Labels.Electrodes.Layout.Row = CurrentRow;
-        app.drta_Save.Labels.Electrodes.Layout.Column = [1 3];
-        CurrentRow = CurrentRow + 1;
-    end
+
     %checking to see if the next row is needed
     if fn > ColumnLimit
         CurrentRow = CurrentRow + 1;
@@ -50,17 +48,9 @@ for fn = 1:channel_total
         ColumnLimit = ColumnLimit + 10;
     end
     %adding a 0 to the number if < 10 and creating a label
-    if fn < 11
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('E-00',num2str(fn-1)));
-        app.drta_Save.ChannelNames{fn} = append('A-00',num2str(fn-1));
-        
-    elseif fn < 101
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('E-0',num2str(fn-1)));
-        app.drta_Save.ChannelNames{fn} = append('A-0',num2str(fn-1));
-    else
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('E-',num2str(fn-1)));
-        app.drta_Save.ChannelNames{fn} = append('A-',num2str(fn-1));
-    end
+    electordName = app.drta_Main.ChannelNames.Electrode{1,fn};
+    ChTitle = uilabel(app.Save_GridLayout,'Text',electordName);
+    app.drta_Save.ChannelNames.Electorde{fn} = electordName;
     app.drta_Save.Yrange.DDChoice{fn+1} = sprintf('%.2i',fn-1);
     app.drta_Save.Yrange.rangeVals(fn) = app.Yrange_amt.Value;
     %label settings
@@ -68,13 +58,8 @@ for fn = 1:channel_total
     ChTitle.FontSize = 14;
     ChTitle.Layout.Row = CurrentRow;
     ChTitle.Layout.Column = CurrentColumn;
-    if fn < 11
-        CurrentChNum = append('ChCB00',num2str(fn-1));
-    elseif fn < 101
-        CurrentChNum = append('ChCB0',num2str(fn-1));
-    else
-        CurrentChNum = append('ChCB',num2str(fn-1));
-    end
+    CurrentChNum = sprintf('CHCB%.3d',fn-1);
+
     %creating a checkbox
     app.drta_Save.ChShown.(CurrentChNum) = uicheckbox(app.Save_GridLayout);
     %checkbox settings
@@ -88,39 +73,8 @@ for fn = 1:channel_total
     else
         app.drta_Save.ChShown.(CurrentChNum).Value = 0;
     end
-    if fn < 11
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('E-00',num2str(fn-1));
-    elseif fn >=11 && fn < 100
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('E-0',num2str(fn-1));
-    else
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('E-',num2str(fn-1));
-    end
+    app.drta_Save.ChShown.(CurrentChNum).Tag = sprintf('E-%.3d',fn-1);
     app.drta_Save.ChShown.(CurrentChNum).ValueChangedFcn = createCallbackFcn(app,@SaveChControl, true);
-    % if fn < 11
-    %     DiffTagName = append('DiffA00',num2str(fn-1));
-    % elseif fn >=11 && fn < 100
-    %     DiffTagName = append('DiffA0',num2str(fn-1));
-    % else
-    %     DiffTagName = append('DiffA',num2str(fn-1));
-    % end
-
-    % %creating dropdown diff menu
-    % app.drta_Save.DiffDropdowns.(DiffTagName) = uidropdown(app.Save_GridLayout);
-    % %dropdown settings
-    % ChNums = cell([1 channel_total+3]);
-    % for ww = 1:channel_total
-    %     ChNums{ww+3} = char(num2str(ww-1));
-    % end
-    % ChNums{1} = 'None';
-    % ChNums{2} = 'Tet';
-    % ChNums{3} = 'Avg';
-    % app.drta_Save.DiffDropdowns.(DiffTagName).Layout.Row = CurrentRow + 1;
-    % app.drta_Save.DiffDropdowns.(DiffTagName).Layout.Column = CurrentColumn;
-    % app.drta_Save.DiffDropdowns.(DiffTagName).Items = ChNums;
-    % app.drta_Save.DiffDropdowns.(DiffTagName).ValueChangedFcn = createCallbackFcn(app,@ChannelDiffChange, true);
-    % app.drta_Save.DiffDropdowns.(DiffTagName).Enable = "off";
-    % app.drta_Save.DiffDropdowns.(DiffTagName).Tag = DiffTagName;
-
     %moves the index to the next label location
     CurrentColumn = CurrentColumn + 2;
 end
@@ -128,47 +82,34 @@ end
 ColumnLimit = 10;   %initial conditions
 CurrentColumn = 1;  %initial conditions
 CurrentRow = CurrentRow + 1; %setting analog ch choice on a new row
+%
+app.drta_Save.Labels.Digital = uilabel(app.Save_GridLayout,'Text',"Digital Channels");
+app.drta_Save.Labels.Digital.HorizontalAlignment = 'center';
+app.drta_Save.Labels.Digital.FontSize = 14;
+app.drta_Save.Labels.Digital.FontName = 'Times New Roman';
+app.drta_Save.Labels.Digital.Layout.Row = CurrentRow;
+app.drta_Save.Labels.Digital.Layout.Column = [1 3];
+CurrentRow = CurrentRow + 1;
+%
 for dch = 1:digital_total
-    if dch == 1
-        app.drta_Save.Labels.Digital = uilabel(app.Save_GridLayout,'Text',"Digital Channels");
-        app.drta_Save.Labels.Digital.HorizontalAlignment = 'center';
-        app.drta_Save.Labels.Digital.FontSize = 14;
-        app.drta_Save.Labels.Digital.FontName = 'Times New Roman';
-        app.drta_Save.Labels.Digital.Layout.Row = CurrentRow;
-        app.drta_Save.Labels.Digital.Layout.Column = [1 3];
-        CurrentRow = CurrentRow + 1;
-    end
     %checking to see if the next row is needed
     if dch > ColumnLimit
         CurrentRow = CurrentRow + 1;
         CurrentColumn = 1;
         ColumnLimit = ColumnLimit + 10;
     end
-    
+    DigitalName = app.drta_Main.ChannelNames.Digital{1,dch};
     %adding a 0 to the number if < 10 and creating a label
-    if dch < 11
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('D-00',num2str(dch-1)));
-        app.drta_Save.ChannelNames{dch} = append('D-00',num2str(dch-1));
-    elseif dch < 101
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('D-0',num2str(dch-1)));
-        app.drta_Save.ChannelNames{dch} = append('D-0',num2str(dch-1));
-    else
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('D-',num2str(dch-1)));
-        app.drta_Save.ChannelNames{dch} = append('D-',num2str(dch-1));
-    end
+    ChTitle = uilabel(app.Save_GridLayout,'Text',DigitalName);
+    app.drta_Save.ChannelNames.Digital{dch} = DigitalName;
     %label settings
     ChTitle.HorizontalAlignment = 'center';
     ChTitle.FontSize = 14;
     ChTitle.Layout.Row = CurrentRow;
     ChTitle.Layout.Column = CurrentColumn;
 
-    if dch < 11
-        CurrentChNum = append('DigitalChCB00',num2str(dch-1));
-    elseif dch < 101
-        CurrentChNum = append('DigitalChCB0',num2str(dch-1));
-    else
-        CurrentChNum = append('DigitalChCB',num2str(dch-1));
-    end
+    CurrentChNum = sprintf('DigitalChCB%.3d',dch-1);
+
     
     if dch < 3
         app.drta_Save.ChShown.(CurrentChNum).Value = 1;
@@ -182,13 +123,8 @@ for dch = 1:digital_total
     app.drta_Save.ChShown.(CurrentChNum).Layout.Row = CurrentRow;
     app.drta_Save.ChShown.(CurrentChNum).Layout.Column = CurrentColumn + 1;
     app.drta_Save.ChShown.(CurrentChNum).Text = {''};
-    if dch < 11
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('D-00',num2str(dch-1));
-    elseif dch >=11 && dch < 100
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('D-0',num2str(dch-1));
-    else
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('D-',num2str(dch-1));
-    end
+    app.drta_Save.ChShown.(CurrentChNum).Tag = sprintf('D-%.3d',dch-1);
+
     app.drta_Save.ChShown.(CurrentChNum).ValueChangedFcn = createCallbackFcn(app,@SaveChControl, true);
     app.drta_Save.ChShown.(CurrentChNum).Value = 1;
     app.drta_Save.p.VisableChannelDigital(dch) = 1;
@@ -200,51 +136,33 @@ end
 ColumnLimit = 10;   %initial conditions
 CurrentColumn = 1;  %initial conditions
 CurrentRow = CurrentRow + 1; %setting analog ch choice on a new row
+%
+app.drta_Save.Labels.Digital = uilabel(app.Save_GridLayout,'Text',"Analog Channels");
+app.drta_Save.Labels.Digital.HorizontalAlignment = 'center';
+app.drta_Save.Labels.Digital.FontSize = 14;
+app.drta_Save.Labels.Digital.FontName = 'Times New Roman';
+app.drta_Save.Labels.Digital.Layout.Row = CurrentRow;
+app.drta_Save.Labels.Digital.Layout.Column = [1 3];
+CurrentRow = CurrentRow + 1;
+%
 for ach = 1:analog_total
-    if ach == 1
-        app.drta_Save.Labels.Digital = uilabel(app.Save_GridLayout,'Text',"Analog Channels");
-        app.drta_Save.Labels.Digital.HorizontalAlignment = 'center';
-        app.drta_Save.Labels.Digital.FontSize = 14;
-        app.drta_Save.Labels.Digital.FontName = 'Times New Roman';
-        app.drta_Save.Labels.Digital.Layout.Row = CurrentRow;
-        app.drta_Save.Labels.Digital.Layout.Column = [1 3];
-        CurrentRow = CurrentRow + 1;
-    end
     %checking to see if the next row is needed
     if ach > ColumnLimit
         CurrentRow = CurrentRow + 1;
         CurrentColumn = 1;
         ColumnLimit = ColumnLimit + 10;
     end
-    
+    AnalogName = app.drta_Main.ChannelNames.Analog{1,ach};
     %adding a 0 to the number if < 10 and creating a label
-    if ach < 11
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('A-00',num2str(ach-1)));
-        app.drta_Save.ChannelNames{ach} = append('A-00',num2str(ach-1));
-    elseif ach < 101
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('A-0',num2str(ach-1)));
-        app.drta_Save.ChannelNames{ach} = append('A-0',num2str(ach-1));
-    else
-        ChTitle = uilabel(app.Save_GridLayout,'Text',append('A-',num2str(ach-1)));
-        app.drta_Save.ChannelNames{ach} = append('A-',num2str(ach-1));
-    end
-
-    
+    ChTitle = uilabel(app.Save_GridLayout,'Text',AnalogName);
+    app.drta_Save.ChannelNames.Analog{ach} = AnalogName;
 
     %label settings
     ChTitle.HorizontalAlignment = 'center';
     ChTitle.FontSize = 14;
     ChTitle.Layout.Row = CurrentRow;
     ChTitle.Layout.Column = CurrentColumn;
-    if ach < 11
-        CurrentChNum = append('AnalogChCB00',num2str(ach-1));
-    elseif ach < 101
-        CurrentChNum = append('AnalogChCB0',num2str(ach-1));
-    else
-        CurrentChNum = append('AnalogChCB',num2str(ach-1));
-    end
-    
-    
+    CurrentChNum = sprintf('AnalogChCB%.3d',ach-1);
 
     %creating a checkbox
     app.drta_Save.ChShown.(CurrentChNum) = uicheckbox(app.Save_GridLayout);
@@ -253,13 +171,8 @@ for ach = 1:analog_total
     app.drta_Save.ChShown.(CurrentChNum).Layout.Row = CurrentRow;
     app.drta_Save.ChShown.(CurrentChNum).Layout.Column = CurrentColumn + 1;
     app.drta_Save.ChShown.(CurrentChNum).Text = {''};
-    if ach < 11
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('A-00',num2str(ach-1));
-    elseif ach >=11 && ach < 100
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('A-0',num2str(ach-1));
-    else
-        app.drta_Save.ChShown.(CurrentChNum).Tag = append('A-',num2str(ach-1));
-    end
+    app.drta_Save.ChShown.(CurrentChNum).Tag = sprintf('A-%.3d',ach-1);
+
     app.drta_Save.ChShown.(CurrentChNum).ValueChangedFcn = createCallbackFcn(app,@SaveChControl, true);
     %moves the index to the next label location
     app.drta_Save.ChShown.(CurrentChNum).Value = 1;

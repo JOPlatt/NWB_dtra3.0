@@ -1,47 +1,37 @@
-function background_ProgramType(app,varargin)
+function DataSet = background_ProgramType(~,varargin)
 
 ProcessType = varargin{1};
-
-if app.Flags.SelectCh == 1
-    NumCh = size(app.SelectedCh,1);
-else
-    NumCh = app.drta_data.draq_p.no_spike_ch;
-end
-
-if app.Flags.AllTrials == 1
-    TrialCount = app.drta_data.draq_d.noTrials;
-else
-    TrialCount = size(app.TrilesExported,1);
-end
+DataSet = varargin{2};
 
 switch ProcessType
     case 1 % generates labels
-        app.drta_Data.draq_d.nEvPerType=zeros(1,9);
-        app.drta_Data.draq_d.nEventTypes=9;
-        app.drta_Data.draq_d.eventlabels=cell(1,9);
-        app.drta_Data.draq_d.eventlabels{1}='OdorA';
-        app.drta_Data.draq_d.eventlabels{2}='OdorB';
-        app.drta_Data.draq_d.eventlabels{3}='OdorAB';
-        app.drta_Data.draq_d.eventlabels{4}='BkgA';
-        app.drta_Data.draq_d.eventlabels{5}='BkgB';
-        app.drta_Data.draq_d.eventlabels{6}='OdorBBkgA';
-        app.drta_Data.draq_d.eventlabels{7}='OdorABkgB';
-        app.drta_Data.draq_d.eventlabels{8}='OdorBBkgB';
-        app.drta_Data.draq_d.eventlabels{9}='OdorABkgA';
-    case 2 % trial exclusion
-        shiftdata = varargin{2};
-        trialNo = varargin{3};
+        DataSet.draq_d.nEvPerType=zeros(1,9);
+        DataSet.draq_d.nEventTypes=9;
+        DataSet.draq_d.eventlabels=cell(1,9);
+        DataSet.draq_d.eventlabels{1}='OdorA';
+        DataSet.draq_d.eventlabels{2}='OdorB';
+        DataSet.draq_d.eventlabels{3}='OdorAB';
+        DataSet.draq_d.eventlabels{4}='BkgA';
+        DataSet.draq_d.eventlabels{5}='BkgB';
+        DataSet.draq_d.eventlabels{6}='OdorBBkgA';
+        DataSet.draq_d.eventlabels{7}='OdorABkgB';
+        DataSet.draq_d.eventlabels{8}='OdorBBkgB';
+        DataSet.draq_d.eventlabels{9}='OdorABkgA';
+    case 2 % trial exclusion and create events
+        shiftdata = DataSet.shiftdata;
+        trialNo = DataSet.TrialsSaved;
+        % create events
         for ii=2:2:18
             t_start=find(shiftdata==ii,1,'first');
             if ~isempty(t_start)
-                app.drta_data.draq_d.noEvents=app.drta_data.draq_d.noEvents+1;
-                app.drta_data.draq_d.events(app.drta_data.draq_d.noEvents)=app.drta_data.draq_d.t_trial(TrialCount(trialNo))+t_start/app.drta_data.draq_p.ActualRate;
-                app.drta_data.draq_d.eventType(app.drta_data.draq_d.noEvents)=ii/2;
-                app.drta_data.draq_d.nEvPerType(ii/2)=app.drta_data.draq_d.nEvPerType(ii/2)+1;
+                DataSet.draq_d.noEvents=DataSet.draq_d.noEvents+1;
+                DataSet.draq_d.events(DataSet.draq_d.noEvents)=DataSet.draq_d.t_trial(TrialCount(trialNo))+t_start/DataSet.draq_p.ActualRate;
+                DataSet.draq_d.eventType(DataSet.draq_d.noEvents)=ii/2;
+                DataSet.draq_d.nEvPerType(ii/2)=DataSet.draq_d.nEvPerType(ii/2)+1;
             end
         end
-    case 3 % create events
-    case 4 % setup for block number
-        app.drta_Data.draq_d.blocks(1,1)=min(app.drta_Data.draq_d.events)-0.00001;
-        app.drta_Data.draq_d.blocks(1,2)=max(app.drta_Data.draq_d.events)+0.00001;
+        
+    case 3 % setup for block number
+        DataSet.draq_d.blocks(1,1)=min(DataSet.draq_d.events)-0.00001;
+        DataSet.draq_d.blocks(1,2)=max(DataSet.draq_d.events)+0.00001;
 end

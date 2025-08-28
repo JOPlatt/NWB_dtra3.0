@@ -15,7 +15,7 @@ if isfield(app.drta_Data,'drtachoices')
 end
 
 %Genterates the header information for events, etc saved in jt_times and drg files
-generate_dio_bits=0;
+app.drta_Data.generate_dio_bits =0;
 
 % oldTrialNo=app.drta_Data.p.trialNo;
 
@@ -40,104 +40,107 @@ programSwitch(app,1);
 
 
 % if generate_dio_bits==1
-%     %For digging out data
-    sniffs=zeros(216000,100);
-    dio_bits=zeros(216000,100);
-% end
-
+if app.drta_Data.generate_dio_bits == 1
+    sniffs= zeros([216000,100]);
+    dio_bits= zeros(216000,100);
+end
+TrialTemp = TrialSaved;
 %Now get the events
 % reset_ii=0;
-
+trialPass = 1;
 all_licks=[];
-% for trialNo=1:TrialSaved
-    %showing current trial and starting the timer
-    % disp(trialNo);
-    % tic
-    % %
-    % if app.Flags.AllTrials == 0
-    %     currentTrial = app.TrialsExported(trialNo);
-    % else
-    %     currentTrial = trialNo;
-    % end
-    % app.drta_Data.p.trialNo=currentTrial;
-    drtaNWB_GetTraceData(app,TrialSaved);
-    % all_licks = nan([size(data,1),TrialCount]);
-    NumEch = sum(app.drta_Save.p.VisableChannel);
-    NumDch = sum(app.drta_Save.p.VisableDigital);
-    NumAch = sum(app.drta_Save.p.VisableAnalog);
-    NumDataPts = size(app.drta_Data.Signals.Digital,1);
-    ElectrodDataPerTrialtemp = nan([NumDataPts,NumEch]);
-    %need to add condition that if the data is >1 or it will be a nxm
-    %for both analog and digital
-    AnalogDataPerTrialtemp = nan([NumDataPts,NumAch]);
-    DigitalDataPerTrialtemp = nan([NumDataPts,NumDch]);
 
-    %     all_licks=data(:,end-5)';
-    % else
-    %     all_licks=[all_licks data(:,end-5)'];
-    
-    % all_licks(:,trialNo) = data(:,app.locations.licks);
-    AnalogDataPerTrialtemp(:,:) = app.drta_Data.Signals.Analog(:,app.drta_Save.p.VisableAnalog == 1);
-    %need if statment for >1 channel
-    DigitalDataPerTrialtemp(:,:) = app.drta_Data.Signals.Digital(:,app.drta_Save.p.VisableDigital == 1);
+for trialNo = TrialTemp
+    %showing current trial and starting the timer
+    disp(trialNo);
+    tic
+
+    drtaNWB_GetTraceData(app,trialNo);
+
+    NumDataPts = size(app.drta_Data.Signals.Digital,1);
+    if trialPass == 1
+        NumEch = sum(app.drta_Save.p.VisableChannel);
+        NumDch = sum(app.drta_Save.p.VisableDigital);
+        NumAch = sum(app.drta_Save.p.VisableAnalog);
+        NumTrial = width(TrialTemp);
+        ElecCollected = nan([NumDataPts,NumEch,NumTrial]);
+        if NumDch > 1
+            DitalCollected = nan([NumDataPts,NumDch,NumTrial]);
+        end
+        if NumAch > 1
+            AnalogCollected = nan([NumDataPts,NumAch,NumTrial]); 
+        end
+        TrialIdx = zeros([NumTrial,2]);
+    end
+    ElectrodDataPerTrialtemp = nan([NumDataPts,NumEch]);
     ElectrodDataPerTrialtemp(:,:) = app.drta_Data.Signals.Electrode(:,app.drta_Save.p.VisableChannel == 1);
-    % idxStart = size(AnalogDataPerTrial,1)+1;
-    % idxStop = size(data,1);
-    % 
-    % AnalogDataPerTrial(idxStart:idxStop) = AnalogDataPerTrialtemp;
-    % %need if statment for >1 channel
-    % DigitalDataPerTrial(idxStart:idxStop) = DigitalDataPerTrialtemp;
-    % ElectrodDataPerTrial(idxStart:idxStop) = ElectrodDataPerTrialtemp;
-    
-    %---%
-    % sniffs(:,trialNo)=data(:,1);
-    % app.drta_Data.dio_bits(:,trialNo)=data(:,3);
+    ElecCollected(1:NumDataPts,:,trialPass) = ElectrodDataPerTrialtemp;
+    if NumAch > 1
+        AnalogDataPerTrialtemp = nan([NumDataPts,NumAch]);
+        AnalogDataPerTrialtemp(:,:) = app.drta_Data.Signals.Analog(:,app.drta_Save.p.VisableAnalog == 1);
+        AnalogCollected(1:NumDataPts,:,trialPass) = AnalogDataPerTrialtemp(:,:);
+        app.drta_Data.AlogData = AnalogDataPerTrialtemp;
+    end
+    if NumDch > 1
+        DigitalDataPerTrialtemp = nan([NumDataPts,NumDch]);
+        DigitalDataPerTrialtemp(:,:) = app.drta_Data.Signals.Digital(:,app.drta_Save.p.VisableDigital == 1);
+        DitalCollected(1:NumDataPts,:,trialPass) = DigitalDataPerTrialtemp(:,:);
+    end
+    TrialIdx(trialPass,:) = [app.drta_Data.draq_d.start_blockNo(trialNo) app.drta_Data.draq_d.end_blockNo(trialNo)];
+    %{
+    Need to revise and make a call to the bitand that are used
+    %}
 
     % needs to be revised!!!
-    % if app.drta_Data.draq_p.dgordra==1
-    %     %This is a dra file
-    %     datavec=DigitalDataPerTrialtemp(:,end-1);
-    %     shiftdata=bitshift( bitand(datavec,248), -2);
-    % else
-    %     %These are dg or rhd files
-    %     digi = DigitalDataPerTrialtemp(:,end-1);
-    %     laser = DigitalDataPerTrialtemp(:,end-2);
-    %     shiftdata=bitand(digi,2+4+8+16);
-    %     shiftdatablock=bitand(digi,1+2+4+8+16);
-    %     %shiftdatans=bitand(digi,1+2+4+8);
-    %     shift_dropc_nsampler=bitand(digi,1+2+4+8+16+32);
-    %     %shift_dropc_nsampler=shiftdata(shift_dropc_nsampler<63);
-    % 
-    % end
+    if app.drta_Data.draq_p.dgordra==1
+        %This is a dra file
+        datavec=DigitalDataPerTrialtemp(:,2);
+        shiftdata=bitshift( bitand(datavec,248), -2);
+    else
+        %These are dg or rhd files
+        if NumDch >= 2
+        digi = DigitalDataPerTrialtemp(:,2);
+        end
+        if NumDch > 8
+            laser = DigitalDataPerTrialtemp(:,end-2);
+        end
+        shiftdata=bitand(digi,2+4+8+16);
+        shiftdatablock=bitand(digi,1+2+4+8+16);
+        shiftdatans=bitand(digi,1+2+4+8);
+        shift_dropc_nsampler=bitand(digi,1+2+4+8+16+32);
+        shift_dropc_nsampler=shiftdata(shift_dropc_nsampler<63);
 
+    end
 
-    % shiftdata30=shiftdata;
-    % shiftdata(1:int64(app.drta_Data.draq_p.ActualRate*app.drta_Data.p.exclude_secs))=0;
+    app.drta_Data.sniffs(:,trialPass) = AnalogDataPerTrialtemp(:,1);
+    app.drta_Data.dio_bits(:,trialPass) = AnalogDataPerTrialtemp(:,3);
+    app.drta_Data.laser(:,trialPass) = AnalogDataPerTrialtemp(:,6);
+    shiftdata30=shiftdata;
+    shiftdata(1:int64(app.drta_Data.draq_p.ActualRate*app.drta_Data.p.exclude_secs))=0;
     shift_dropc_nsampler(1:int64(app.drta_Data.draq_p.ActualRate*app.drta_Data.p.exclude_secs))=0;
-    % 
-    % licks=[];
-    % licks=AnalogDataPerTrialtemp(:,3);
-
 
     %Exclude the trials that are off
-    app.drta_Data.TrialsSaved = TrialSaved;
+    app.drta_Data.shiftdata30 = shiftdata30;
+    app.drta_Data.TrialsSaved = trialNo;
     app.drta_Data.dropCsamples = shift_dropc_nsampler;
+    app.drta_Data.shiftdata = shiftdata;
+    
     programSwitch(app,2);
-    %Enter events
-    programSwitch(app,3);
-
-
     toc
-% end
-lick_max=prctile(all_licks,99.9);
-lick_min=prctile(all_licks,0.01);
-lick_thr=lick_min+0.5*(lick_max-lick_min);
-
+    trialPass = trialPass + 1;
+end
+if NumAch > 1
+    all_licks = reshape(AnalogCollected(:,1,:),[width(AnalogCollected(:,1,1)),height(AnalogCollected(:,1,:))*length(AnalogCollected(1,1,:))]);
+    lick_max=prctile(all_licks,99.9);
+    lick_min=prctile(all_licks,0.01);
+    lick_thr=lick_min+0.5*(lick_max-lick_min);
+end
 % Setup block numbers
-% programSwitch(app,4);
+programSwitch(app,3);
 
-%still needs revisions
-% app.drta_Data=drta03_ExcludeBadLFP(app,app.drta_Data);
+%still needs revisions; this is a parfor that need to already have all the
+%data in a cell array
+% app.drta_Data = drta03_ExcludeBadLFP(app,app.drta_Data);
 
 params=app.drta_Data.draq_p;
 drta_p=app.drta_Data.p;

@@ -1,17 +1,11 @@
-function mspy_ProgramType(app,varargin)
+function DataSet = mspy_ProgramType(app,varargin)
 
 ProcessType = varargin{1};
-
+DataSet = varargin{2};
 if app.Flags.SelectCh == 1
-    NumCh = size(app.SelectedCh,1);
+    NumCh = sum(DataSet.SelectedCh);
 else
-    NumCh = app.drta_data.draq_p.no_spike_ch;
-end
-
-if app.Flags.AllTrials == 1
-    TrialCount = app.drta_data.draq_d.noTrials;
-else
-    TrialCount = size(app.TrilesExported,1);
+    NumCh = DataSet.draq_p.no_spike_ch;
 end
 
 switch ProcessType
@@ -22,35 +16,34 @@ switch ProcessType
         sec_post_trigger=textscan(fid,'%d',1);
         num_keys=textscan(fid,'%d',1);
         key_names=textscan(fid,'%s',num_keys{1});
-        fclose(fid)
+        fclose(fid);
         for ii=1:num_keys{1}
-            app.drta_Data.draq_d.eventlabels{ii}=key_names{1}(ii);
+            DataSet.draq_d.eventlabels{ii}=key_names{1}(ii);
         end
-        app.drta_Data.draq_d.nEvPerType=zeros(1,num_keys{1});
-        app.drta_Data.draq_d.nEventTypes=num_keys{1};
-    case 2 % trial exclusion
-    case 3 % create events
-        shiftdata = varargin{2};
-        trialNo = varargin{3};
+        DataSet.draq_d.nEvPerType=zeros(1,num_keys{1});
+        DataSet.draq_d.nEventTypes=num_keys{1};
+    case 2 % trial exclusion and create events
+        shiftdata = DataSet.shiftdata;
+        trialNo = DataSet.TrialsSaved;
         current_ii=1;
         last_event=-10000000;
         while current_ii<length(shiftdata)
-            event=find(shiftdata(current_ii:length(shiftdata))>=2+app.drta_Data.p.mspy_key_offset,1,'first');
+            event=find(shiftdata(current_ii:length(shiftdata))>=2+DataSet.p.mspy_key_offset,1,'first');
             if ~isempty(event)
-                if current_ii+event-1-last_event>app.drta_Data.p.mspy_key_offset*app.drta_Data.draq_p.ActualRate
-                    eventNo=(shiftdata(current_ii+event-1)-app.drta_Data.p.mspy_key_offset)/2;
-                    app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
-                    app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+event/app.drta_Data.draq_p.ActualRate;
-                    app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=eventNo;
-                    app.drta_Data.draq_d.nEvPerType(eventNo)=app.drta_Data.draq_d.nEvPerType(eventNo)+1;
+                if current_ii+event-1-last_event>DataSet.p.mspy_key_offset*DataSet.draq_p.ActualRate
+                    eventNo=(shiftdata(current_ii+event-1)-DataSet.p.mspy_key_offset)/2;
+                    DataSet.draq_d.noEvents=DataSet.draq_d.noEvents+1;
+                    DataSet.draq_d.events(DataSet.draq_d.noEvents)=DataSet.draq_d.t_trial(trialNo)+event/DataSet.draq_p.ActualRate;
+                    DataSet.draq_d.eventType(DataSet.draq_d.noEvents)=eventNo;
+                    DataSet.draq_d.nEvPerType(eventNo)=DataSet.draq_d.nEvPerType(eventNo)+1;
                     last_evType=eventNo;
                 else
-                    eventNo=(shiftdata(current_ii+event-1)-app.drta_Data.p.mspy_key_offset)/2;
+                    eventNo=(shiftdata(current_ii+event-1)-DataSet.p.mspy_key_offset)/2;
                     if eventNo~=last_evType
-                        app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
-                        app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+event/app.drta_Data.draq_p.ActualRate;
-                        app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=eventNo;
-                        app.drta_Data.draq_d.nEvPerType(eventNo)=app.drta_Data.draq_d.nEvPerType(eventNo)+1;
+                        DataSet.draq_d.noEvents=DataSet.draq_d.noEvents+1;
+                        DataSet.draq_d.events(DataSet.draq_d.noEvents)=DataSet.draq_d.t_trial(trialNo)+event/DataSet.draq_p.ActualRate;
+                        DataSet.draq_d.eventType(DataSet.draq_d.noEvents)=eventNo;
+                        DataSet.draq_d.nEvPerType(eventNo)=DataSet.draq_d.nEvPerType(eventNo)+1;
                         last_evType=eventNo;
                     end
                 end
@@ -63,7 +56,7 @@ switch ProcessType
             end
 
         end
-    case 4 % setup for block number
-        handles.draq_d.blocks(1,1)=min(handles.draq_d.events)-0.00001;
-        handles.draq_d.blocks(1,2)=max(handles.draq_d.events)+0.00001;
+    case 3 % setup for block number
+        DataSet.draq_d.blocks(1,1)=min(DataSet.draq_d.events)-0.00001;
+        DataSet.draq_d.blocks(1,2)=max(DataSet.draq_d.events)+0.00001;
 end

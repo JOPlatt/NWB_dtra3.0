@@ -163,7 +163,7 @@ if app.Flags.DataShownAs ~=12
             Processing the data for each plot and showing each result on a
             single figure            
             %}
-            ChannelName = app.SelectChannelsTab.Children.Children.Children(tagNum,1).Tag;
+            ChannelName = app.drta_Main.ChShown.NamesOnly(ss);
             AllChNames{NumberSeen,1} = append(ChannelName,'------>');
             NumberSeen = NumberSeen + 1;
         end

@@ -1,57 +1,72 @@
 function programSwitch(app,varargin)
 
 procesMethod = varargin{1};
-switch app.drta_Data.p.which_c_program
+if nargin == 3
+    FileNum = varargin{2};
+    fname = sprintf('drtaFile%.3d',FileNum);
+    DataSet = app.data_files.(fname);
+else
+    DataSet = app.drta_Data;
+end
 
+switch app.drta_Data.p.which_c_program
     case (1)
-        %dropcnsampler
-        dropcnsampler_ProgramType(app,procesMethod,trialNo,shift_dropc_nsampler,shiftdata);
+        %dropcnsampler; trialNo,shift_dropc_nsampler,shiftdata
+        DataSet = dropcnsampler_ProgramType(app,procesMethod,DataSet);
     case (2)
         % dropcspm
-        dropcspm_ProgramType(app,procesMethod);
+        DataSet = dropcspm_ProgramType(app,procesMethod,DataSet);
     case (3)
         %background
-        background_ProgramType(app,procesMethod);
+        DataSet = background_ProgramType(app,procesMethod,DataSet);
     case (4)
         %spmult
-        spmult_ProgramType(app,procesMethod);
+        DataSet = spmult_ProgramType(app,procesMethod,DataSet);
     case (5)
         %mspy
-        mspy_ProgramType(app,procesMethod);
+        DataSet = mspy_ProgramType(app,procesMethod,DataSet);
     case (6)
         %osampler
-        osampler_ProgramType(app,procesMethod);
+        DataSet = osampler_ProgramType(app,procesMethod,DataSet);
     case (7)
         %ospm2mult
-        spm2mult_ProgramType(app,procesMethod);
+        DataSet = spm2mult_ProgramType(app,procesMethod,DataSet);
     case(8)
         %lighton one pulse
-        lighton1_ProgramType(app,procesMethod,data,trialNo);
+        DataSet = lighton1_ProgramType(app,procesMethod,DataSet);
     case (9)
         %lighton five pulses
-        lighton5_ProgramType(app,procesMethod,data,trialNo);
+        DataSet = lighton5_ProgramType(app,procesMethod,DataSet);
     case (10)
-        %dropcspm_conc
-        dropcspm_conc_ProgramType(app,procesMethod,trialNo,shift_dropc_nsampler);
+        %dropcspm_conc 
+        DataSet = dropcspm_conc_ProgramType(app,procesMethod,DataSet);
     case (11)
         %Ming laser
-        LaserTriggered_ProgramType(app,procesMethod);
+        DataSet = LaserTriggered_ProgramType(app,procesMethod,DataSet);
     case (12)
         %Merouann laser
-        LaserMerouann_ProgramType(app,procesMethod);
+        DataSet = LaserMerouann_ProgramType(app,procesMethod,DataSet);
     case (13)
         %dropcspm hf
-        dropcspm_hf_ProgramType(app,procesMethod);
+        DataSet = dropcspm_hf_ProgramType(app,procesMethod,DataSet);
     case (14)
         %Working memory
-        Working_memory_ProgramType(app,procesMethod);
+        DataSet = Working_memory_ProgramType(app,procesMethod,DataSet);
     case (15)
         %Continuous
-        Continuous_ProgramType(app,procesMethod);
+        DataSet = Continuous_ProgramType(app,procesMethod,DataSet);
     case (16)
         %Laser Kira
-        Laser_Kira_ProgramType(app,procesMethod);
+        DataSet = Laser_Kira_ProgramType(app,procesMethod,DataSet);
     case (17)
         %Laser Schoppa
-        Laser_Schoppa_ProgramType(app,procesMethod);
+        DataSet = Laser_Schoppa_ProgramType(app,procesMethod,DataSet);
+end
+
+if nargin == 3
+    FileNum = varargin{2};
+    fname = sprintf('drtaFile%.3d',FileNum);
+    app.data_files.(fname) = DataSet;
+else
+    app.drta_Data = DataSet;
 end

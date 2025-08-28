@@ -90,3 +90,6 @@ app.Flags.ShowAnalog = 0;
 
 app.AnalogFigures.FiguresBuild = 0;
 app.DigitalFigures.FiguresBuild = 0;
+% setting to false causes the intital two digital plots to be generated
+app.drta_Main.digitalPlots.presetDone = false;
+app.AnalogFigures.CHnames = {'Sniffing','Lick Sensor','Mouse Head','Photodiode'};

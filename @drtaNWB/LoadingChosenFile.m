@@ -37,6 +37,10 @@ app.trial_amt.Enable = false;
 app.OutputText = [append("Loading: ",app.drta_Data.p.FileName)];
 ReadoutUpdate(app,[append("Protocol: ",protocolPick)]);
 %
+app.drta_Data.p.which_c_program = app.Cprogrom_DropDown.ValueIndex;
+
+
+%
 % loading files
 if strcmp(app.drta_Data.p.FileName(end-2:end),'rhd')
     open_rhd_Callback(app);

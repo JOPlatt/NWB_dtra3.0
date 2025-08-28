@@ -1,4 +1,4 @@
-function [varargout]=drta03_read_Intan_RHD2000_header(app)
+function [varargout]=drta03_read_Intan_RHD2000_header(app,FileNum)
 
 % read_Intan_RHD2000_file
 %
@@ -10,35 +10,15 @@ function [varargout]=drta03_read_Intan_RHD2000_header(app)
 % recommended to execute a 'clear' command before running this program tort
 % clear all other variables from the base workspace.
 %
-% Example:
-% >> clear
-% >> read_Intan_RHD2000_file
-% >> whos
-% >> amplifier_channels(1)
-% >> plot(t_amplifier, amplifier_data(1,:))
-
-% [file, path, filterindex] = ...
-%     uigetfile('*.rhd', 'Select an RHD2000 Data File', 'MultiSelect', 'off')
-% 
-% if (file == 0)
-%     return;
-% end
-
-% Read most recent file automatically.
-% path = 'C:\Users\Reid\Documents\RHD2132\testing\';
-% d = dir([path '*.rhd']);
-% file = d(end).name;
-
-if app.Flags.RunningWhat == 2
+if isprop(app,'data_files')
+    fname = sprintf('drtaFile%.3d',FileNum);
+    filename = app.data_files.(fname).p.fullName;
+    which_protocol = app.data_files.(fname).p.which_protocol;
+    handles = app.data_files.(fname);
+else
     filename = app.drta_Data.p.fullName;
     which_protocol = app.drta_Data.p.which_protocol;
     handles = app.drta_Data;
-else
-    filename = fullfile(app.drta_data.FileLoc,app.drta_data.FileName);
-    which_protocol = app.FileProcInfo(1,app.Flags.CurrentNum);
-    
-    handles.pre_dt = 6;
-    handles.trial_duration = 9;
 end
 
 
@@ -59,10 +39,6 @@ end
 data_file_main_version_number = fread(fid, 1, 'int16');
 data_file_secondary_version_number = fread(fid, 1, 'int16');
 
-% fprintf(1, '\n');
-% fprintf(1, 'Reading Intan Technologies RHD2000 Data File, Version %d.%d\n', ...
-%     data_file_main_version_number, data_file_secondary_version_number);
-% fprintf(1, '\n');
 textUpdate = ['Reading Intan Technologies RHD2000 Data File,' ...
     'Version ' num2str(data_file_main_version_number) '.' ...
     num2str(data_file_secondary_version_number)];
@@ -257,21 +233,6 @@ num_board_adc_channels = board_adc_index - 1;
 num_board_dig_in_channels = board_dig_in_index - 1;
 num_board_dig_out_channels = board_dig_out_index - 1;
 % 
-% fprintf(1, 'Found %d amplifier channel%s.\n', ...
-%     num_amplifier_channels, plural(num_amplifier_channels));
-% fprintf(1, 'Found %d auxiliary input channel%s.\n', ...
-%     num_aux_input_channels, plural(num_aux_input_channels));
-% fprintf(1, 'Found %d supply voltage channel%s.\n', ...
-%     num_supply_voltage_channels, plural(num_supply_voltage_channels));
-% fprintf(1, 'Found %d board ADC channel%s.\n', ...
-%     num_board_adc_channels, plural(num_board_adc_channels));
-% fprintf(1, 'Found %d board digital input channel%s.\n', ...
-%     num_board_dig_in_channels, plural(num_board_dig_in_channels));
-% fprintf(1, 'Found %d board digital output channel%s.\n', ...
-%     num_board_dig_out_channels, plural(num_board_dig_out_channels));
-% fprintf(1, 'Found %d temperature sensors channel%s.\n', ...
-%     num_temp_sensor_channels, plural(num_temp_sensor_channels));
-% fprintf(1, '\n');
 
 % Determine how many samples the data file contains.
 

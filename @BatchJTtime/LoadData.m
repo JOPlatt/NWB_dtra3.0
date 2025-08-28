@@ -31,16 +31,25 @@ end
 app.UIFigure.focus;
 
 if app.Flags.DataLoaded == 0
-    app.FileLoc = cell([FileNum,2]);
+    % app.FileLoc = cell([FileNum,2]);
     app.Flags.DataLoaded = FileNum;
     for ss = 1:FileNum
-        app.FileLoc{ss,1} = FilePath{ss};
-        app.FileLoc{ss,2} = FileName{ss};
+        fname = sprintf('drtaFile%.3d',ss);
+        app.data_files.(fname) = app.drta_Data;
+        app.data_files.(fname).p.fullName = fullfile(FilePath{ss},FileName{ss});
+        app.data_files.(fname).p.FileName = FileName{ss}; 
+        app.data_files.(fname).p.PathName = FilePath{ss};
     end
 
 else
     RowNum = app.Flags.DataLoaded + 1;
-    app.FileLoc{RowNum,1} = FilePath;
-    app.FileLoc{RowNum,2} = FileName;
     app.Flags.DataLoaded = app.Flags.DataLoaded + 1;
+    fname = sprintf('drtaFile%.3d',RowNum);
+    app.data_files.(fname) = app.drta_Data;
+    app.data_files.(fname).p.fullName = fullfile(FilePath,FileName);
+    app.data_files.(fname).p.FileName = FileName; 
+    app.data_files.(fname).p.PathName = FilePath;
 end
+
+app.drta_Main.digitalPlots.presetDone = false;
+app.LoadChosenFilesButton.Enable = "on";

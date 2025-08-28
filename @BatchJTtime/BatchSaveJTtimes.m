@@ -1,42 +1,20 @@
-function BatchSaveJTtimes(app)
+function BatchSaveJTtimes(app,FileNum)
 
+needRemvoed = {'snip_samp'; 'snip_index'; 'snips'; 'noEvents'; ...
+    'nEvPerType'; 'nEventTypes'; 'eventlabels'; 'events';  ...
+    'eventType'; 'blocks'};
 
+fname = sprintf('drtaFile%.3d',FileNum);
+app.data_files.(fname)
 
-handles = app.drta_data;
-
-if (isfield(handles.draq_d,'snip_samp'))
-    try
-        rmfield(handles.draq_d,'snip_samp');
-    catch
-
-    end
-    try
-        rmfield(handles.draq_d,'snip_index');
-    catch
-    end
-    try
-        rmfield(handles.draq_d,'snips');
-    catch
+for r = 1:height(needRemvoed)
+    if (isfield(app.data_files.(fname).draq_d,needRemvoed{r}))
+        try
+            app.data_files.(fname).draq_d = rmfield(app.data_files.(fname).draq_d,needRemvoed{r});
+        catch
+            textUpdate = spirntf('Unable to remove %s field',needRemvoed{r});
+            ReadoutUpdate(app,textUpdate);
+        end
     end
 end
 
-if (isfield(handles.draq_d,'noEvents'))
-    rmfield(handles.draq_d,'noEvents');
-    rmfield(handles.draq_d,'nEvPerType');
-    rmfield(handles.draq_d,'nEventTypes');
-    rmfield(handles.draq_d,'eventlabels');
-
-    try
-        rmfield(handles.draq_d,'events');
-        rmfield(handles.draq_d,'eventType');
-    catch
-    end
-
-
-    try
-        rmfield(handles.draq_d,'blocks');
-    catch
-    end
-end
-
-drta03_GenerateEvents(app,handles);

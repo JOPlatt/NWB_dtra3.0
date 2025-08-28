@@ -1,31 +1,24 @@
-function lighton1_ProgramType(app,varargin)
+function DataSet =  lighton1_ProgramType(app,varargin)
 
 ProcessType = varargin{1};
-
+DataSet = varargin{2};
 if app.Flags.SelectCh == 1
-    NumCh = size(app.SelectedCh,1);
+    NumCh = sum(DataSet.SelectedCh);
 else
-    NumCh = app.drta_data.draq_p.no_spike_ch;
-end
-
-if app.Flags.AllTrials == 1
-    TrialCount = app.drta_data.draq_d.noTrials;
-else
-    TrialCount = size(app.TrilesExported,1);
+    NumCh = DataSet.draq_p.no_spike_ch;
 end
 
 switch ProcessType
     case 1 % generates labels
-        app.drta_Data.draq_d.nEvPerType=zeros(1,2);
-        app.drta_Data.draq_d.nEventTypes=2;
-        app.drta_Data.draq_d.eventlabels=cell(1,2);
+        DataSet.draq_d.nEvPerType=zeros(1,2);
+        DataSet.draq_d.nEventTypes=2;
+        DataSet.draq_d.eventlabels=cell(1,2);
         
-        app.drta_Data.draq_d.eventlabels{1}='LightOn';
-        app.drta_Data.draq_d.eventlabels{2}='LightOn';
+        DataSet.draq_d.eventlabels{1}='LightOn';
+        DataSet.draq_d.eventlabels{2}='LightOn';
     case 2 % trial exclusion
-        data = varargin{2};
-        trialNo = varargin{3};
-        digidata=data(:,21);
+        trialNo = DataSet.TrialsSaved;
+        digidata= DataSet.AlogData(:,5);
 
         %This is a bit safer way to get min and max
         minmin_y=min(digidata);
@@ -34,22 +27,17 @@ switch ProcessType
         min_y=mean(digidata(digidata<(minmin_y+(maxmax_y-minmin_y)/2)));
 
         if (max_y-min_y)>200
-            timeBefore=str2double(get(app.drta_Data.timeBeforeFV,'String'));
-            firstLightOn=find(digidata>(min_y+(max_y-min_y)/2),1,'first')/app.drta_Data.draq_p.ActualRate;
+            timeBefore=str2double(get(DataSet.timeBeforeFV,'String'));
+            firstLightOn=find(digidata>(min_y+(max_y-min_y)/2),1,'first')/DataSet.draq_p.ActualRate;
             if firstLightOn<timeBefore
-                app.drta_Data.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
-                app.drta_Data.p.trial_allch_processed(trialNo)=0;
+                DataSet.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
+                DataSet.p.trial_allch_processed(trialNo)=0;
             end
         else
-            app.drta_Data.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
-            app.drta_Data.p.trial_allch_processed(trialNo)=0;
+            DataSet.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
+            DataSet.p.trial_allch_processed(trialNo)=0;
         end
-    case 3 % create events
-        data = varargin{2};
-        trialNo = varargin{3};
-        %21 digital input
-        digidata=data(:,21);
-
+        %create events
         %This is a bit safer way to get min and max
         minmin_y=min(digidata);
         maxmax_y=max(digidata);
@@ -60,16 +48,16 @@ switch ProcessType
 
         if (max_y-min_y)>200
             firstdig=find(digidata>min_y+0.5*(max_y-min_y),1,'first');
-            app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
-            app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+firstdig/app.drta_Data.draq_p.ActualRate;
-            app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=1;
-            app.drta_Data.draq_d.nEvPerType(1)=app.drta_Data.draq_d.nEvPerType(1)+1;
+            DataSet.draq_d.noEvents=DataSet.draq_d.noEvents+1;
+            DataSet.draq_d.events(DataSet.draq_d.noEvents)=DataSet.draq_d.t_trial(trialNo)+firstdig/DataSet.draq_p.ActualRate;
+            DataSet.draq_d.eventType(DataSet.draq_d.noEvents)=1;
+            DataSet.draq_d.nEvPerType(1)=DataSet.draq_d.nEvPerType(1)+1;
 
 
-            app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
-            app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+firstdig/app.drta_Data.draq_p.ActualRate;
-            app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=2;
-            app.drta_Data.draq_d.nEvPerType(2)=app.drta_Data.draq_d.nEvPerType(2)+1;
+            DataSet.draq_d.noEvents=DataSet.draq_d.noEvents+1;
+            DataSet.draq_d.events(DataSet.draq_d.noEvents)=DataSet.draq_d.t_trial(trialNo)+firstdig/DataSet.draq_p.ActualRate;
+            DataSet.draq_d.eventType(DataSet.draq_d.noEvents)=2;
+            DataSet.draq_d.nEvPerType(2)=DataSet.draq_d.nEvPerType(2)+1;
         else
             bad_trial=1;
         end  %if (max_y-min_y)>200
@@ -79,23 +67,21 @@ switch ProcessType
             %accompanying t_start and odor_on
 
             %First exclude this weird trial
-            app.drta_Data.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
-            app.drta_Data.p.trial_allch_processed(trialNo)=0;
+            DataSet.p.trial_ch_processed(1:NumCh,trialNo)=zeros(NumCh,1);
+            DataSet.p.trial_allch_processed(trialNo)=0;
 
             %Then add this one
-            app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
-            app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+2;
-            app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=1;
-            app.drta_Data.draq_d.nEvPerType(1)=app.drta_Data.draq_d.nEvPerType(1)+1;
+            DataSet.draq_d.noEvents=DataSet.draq_d.noEvents+1;
+            DataSet.draq_d.events(DataSet.draq_d.noEvents)=DataSet.draq_d.t_trial(trialNo)+2;
+            DataSet.draq_d.eventType(DataSet.draq_d.noEvents)=1;
+            DataSet.draq_d.nEvPerType(1)=DataSet.draq_d.nEvPerType(1)+1;
 
-            app.drta_Data.draq_d.noEvents=app.drta_Data.draq_d.noEvents+1;
-            app.drta_Data.draq_d.events(app.drta_Data.draq_d.noEvents)=app.drta_Data.draq_d.t_trial(trialNo)+2;
-            app.drta_Data.draq_d.eventType(app.drta_Data.draq_d.noEvents)=2;
-            app.drta_Data.draq_d.nEvPerType(2)=app.drta_Data.draq_d.nEvPerType(2)+1;
+            DataSet.draq_d.noEvents=DataSet.draq_d.noEvents+1;
+            DataSet.draq_d.events(DataSet.draq_d.noEvents)=DataSet.draq_d.t_trial(trialNo)+2;
+            DataSet.draq_d.eventType(DataSet.draq_d.noEvents)=2;
+            DataSet.draq_d.nEvPerType(2)=DataSet.draq_d.nEvPerType(2)+1;
         end
-
-
-    case 4 % setup for block number
-        app.drta_Data.draq_d.blocks(1,1)=app.drta_Data.draq_d.t_trial(1)-9;
-        app.drta_Data.draq_d.blocks(1,2)=app.drta_Data.draq_d.t_trial(end)+9;
+    case 3 % setup for block number
+        DataSet.draq_d.blocks(1,1)=DataSet.draq_d.t_trial(1)-9;
+        DataSet.draq_d.blocks(1,2)=DataSet.draq_d.t_trial(end)+9;
 end

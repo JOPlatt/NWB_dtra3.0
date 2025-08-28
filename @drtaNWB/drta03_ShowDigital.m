@@ -1,5 +1,9 @@
 function drta03_ShowDigital(app)
+%{
+This function shows any digital plots that have been selected
 
+Created by Jonathan Platt
+%}
 drtaNWB_GetTraceData(app,app.TrialNoDigit_EditField.Value);
 data = app.drta_Data.Signals.Digital;
 currentChan = find(app.drta_Data.p.VisableChannelDigital == 1);
@@ -31,35 +35,49 @@ if app.DigitalFigures.FiguresBuild == 0
     % end
     app.DigitalFigures.NumChannels = size(currentChan,2);
     ColumnSize = strings([1,app.DigitalFigures.NumChannels]);
-    for ss = 1:size(currentChan,2)
+    for ss = 1:sum(app.drta_Data.p.VisableChannelDigital)
         ColumnSize{ss} = '1x';
 
     end
     app.DigitalPlot_Grid.RowHeight = ColumnSize;
-    for uu = 1:size(currentChan,2)
+    for ii = 1:sum(app.drta_Data.p.VisableChannelDigital)
+        uu = currentChan(ii);
         chanName = sprintf('DigitalCh%.2d',uu);
         app.DigitalFigures.DigiFig.(chanName) = uiaxes(app.DigitalPlot_Grid);
-        app.DigitalFigures.DigiFig.(chanName).Layout.Row = app.DigitalFigures.NumChannels - uu + 1;
+        app.DigitalFigures.DigiFig.(chanName).Layout.Row = app.DigitalFigures.NumChannels - ii + 1;
     end
 else
-    cla(app.DigitalPlot_Grid.Children);
+    cla(app.DigitalPlot_Grid.Children,"reset");
 end
-DsetNum = app.drta_Data.draq_d.num_amplifier_channels;
+
 for ii = 1:sum(app.drta_Data.p.VisableChannelDigital)
     uu = currentChan(ii);
-    chanName = sprintf('DigitalCh%.2d',uu);
-
-
+    chN = app.drta_Main.digitalPlots.plotNames{uu};
+    if ~contains(chN,'DigitalCh') && ~contains(chN,'Trigger')
+        bitValues = app.drta_Main.digitalPlots.(chN).bitUsed;
+        bit_indices = [0,1,2,3,4,5,6,7];
+        bit_mask = sum(2.^(bit_indices(bitValues == 1)));
+        % ChUsed = app.drta_Main.digitalPlots.(chN(uu)).ChUsed;
+        % DigitalChannels = 3:app.drta_Data.draq_d.num_board_dig_in_channels+2;
+        % data_shown = data(:,DigitalChannels(ChUsed == 1));
         data_shown = data(:,uu);
-        shiftNum = app.ShiftDataBitand_EditField.Value;
-        if shiftNum == 0
-            data_shown=bitand(data_shown,1+2+4+8+16);
-        else
-            data_shown=bitand(data_shown,shiftNum);
-        end
-    
+        data_shown = bitand(data_shown,bit_mask);
+        app.drta_Data.Signals.BitAndDigital.(chN) = data_shown;
+    else
+        data_shown = data(:,uu);
+    end
+    if ii > 1
+        hold(app.DigitalFigures.DigiFig.(chanName),"off")
+    end
+    chanName = sprintf('DigitalCh%.2d',uu);
     plot(app.DigitalFigures.DigiFig.(chanName),data_shown(ii_from:ii_to));
-
+    hold(app.DigitalFigures.DigiFig.(chanName),"on")
+    if ii > 1
+        uu2 = currentChan(1);
+        chanNameold = sprintf('DigitalCh%.2d',uu2);
+        app.DigitalFigures.DigiFig.(chanName).InnerPosition(1) = app.DigitalFigures.DigiFig.(chanNameold).InnerPosition(1);
+        app.DigitalFigures.DigiFig.(chanName).InnerPosition(3) = app.DigitalFigures.DigiFig.(chanNameold).InnerPosition(3);
+    end
     dt=display_interval/5;
     dt=round(dt*10^(-floor(log10(dt))))/10^(-floor(log10(dt)));
     d_samples=dt*app.drta_Data.draq_p.ActualRate;
@@ -77,14 +95,11 @@ for ii = 1:sum(app.drta_Data.p.VisableChannelDigital)
 
     switch uu
         case 1
-            pName = sprintf('Trigger');
-            exc_sn = app.ExcLicks_CheckBox.Value;
-            if (exc_sn) && (uu == 2)
-                [~,lct]=findpeaks(abs(data_shown(ii_from+1:ii_to)-data_shown(ii_from:ii_to-1)),'MinPeakHeight',app.drta_Data.p.exc_sn_thr);
-                hold on
-                plot(app.DigitalFigures.DigiFig.(chanName),lct,data_shown(ii_from+lct),'or')
-                hold off
-            end
+            % exc_sn = app.ExcLicks_CheckBox.Value;
+            % if (exc_sn) && (uu == 2)
+            %     [~,lct]=findpeaks(abs(data_shown(ii_from+1:ii_to)-data_shown(ii_from:ii_to-1)),'MinPeakHeight',app.drta_Data.p.exc_sn_thr);
+            %     plot(app.DigitalFigures.DigiFig.(chanName),lct,data_shown(ii_from+lct),'or')
+            % end
 
             min_y=min(data_shown(ii_from:ii_to));
             max_y=max(data_shown(ii_from:ii_to));
@@ -95,38 +110,34 @@ for ii = 1:sum(app.drta_Data.p.VisableChannelDigital)
             end
             ylim(app.DigitalFigures.DigiFig.(chanName),[min_y-0.1*(max_y-min_y) max_y+0.1*(max_y-min_y)]);
 
-            time=app.drta_Data.p.start_display_time;
-            jj=1;
-            maxAmt = ceil(app.drta_Data.p.start_display_time+display_interval/dt)+1;
-            tick_label = cell([1 maxAmt]);
-            while time<(app.drta_Data.p.start_display_time+display_interval)
-                tick_label{jj}=num2str(time);
-                time=time+dt;
-                jj=jj+1;
-            end
-            tick_label{jj}=num2str(time);
-            app.DigitalFigures.DigiFig.(chanName).XTickLabel = tick_label;
-        
-            xlim(app.DigitalFigures.DigiFig.(chanName),[1 1+display_interval*app.drta_Data.draq_p.ActualRate]);
-            % xlim(app.DigitalFigures.DigiFig.(chanName),[1 1+app.drta_Data.p.display_interval*app.drta_Data.draq_p.ActualRate]);
-            
-            xticks(app.DigitalFigures.DigiFig.(chanName),0:d_samples:display_interval*app.drta_Data.draq_p.ActualRate);
+            % time=app.drta_Data.p.start_display_time;
+            % jj=1;
+            % maxAmt = ceil(app.drta_Data.p.start_display_time+display_interval/dt)+1;
+            % tick_label = cell([1 maxAmt]);
+            % while time<(app.drta_Data.p.start_display_time+display_interval)
+            %     tick_label{jj}=num2str(time);
+            %     time=time+dt;
+            %     jj=jj+1;
+            % end
+            % tick_label{jj}=num2str(time);
+            % app.DigitalFigures.DigiFig.(chanName).XTickLabel = tick_label;
+            %
+            % xlim(app.DigitalFigures.DigiFig.(chanName),[1 1+display_interval*app.drta_Data.draq_p.ActualRate]);
+            % % xlim(app.DigitalFigures.DigiFig.(chanName),[1 1+app.drta_Data.p.display_interval*app.drta_Data.draq_p.ActualRate]);
+            %
+            % xticks(app.DigitalFigures.DigiFig.(chanName),0:d_samples:display_interval*app.drta_Data.draq_p.ActualRate);
         case 2
-            pName = sprintf('Digital');
             %Draw a red line at odor on
-            bitNum = app.ShiftBitand_EditField.Value;
-            if bitNum == 0
-                shift_dropc_nsampler=bitand(data_shown,1+2+4+8+16+32);
-            else
-                shift_dropc_nsampler=bitand(data_shown,bitNum);
-            end
+
 
             odor_on=[];
             switch app.drta_Data.p.which_c_program
                 case 2
                     %dropcspm
-                    odor_on=find(shiftdata_all==18,1,'first');
+                    odor_on=find(data_shown==18,1,'first');
                 case 10
+                    data_shown = data(:,uu);
+                    shift_dropc_nsampler=bitand(data_shown,1+2+4+8+16+32);
                     %dropcspm conc
                     t_start=find(shift_dropc_nsampler==1,1,'first');
                     if (sum((shift_dropc_nsampler>=2)&(shift_dropc_nsampler<=7))>2.4*app.drta_Data.draq_p.ActualRate)&...
@@ -137,7 +148,7 @@ for ii = 1:sum(app.drta_Data.p.VisableChannelDigital)
             end
 
             if ~isempty(odor_on)
-                plot(app.DigitalFigures.DigiFig.(chanName),[odor_on odor_on],[0 35],'-r');
+                xline(app.DigitalFigures.DigiFig.(chanName),[odor_on odor_on],'-r');
             end
             app.DigitalFigures.DigiFig.(chanName).XTick = [];
             if (minAmt+minus10p) ~= (maxAmt+added10p)
@@ -145,9 +156,28 @@ for ii = 1:sum(app.drta_Data.p.VisableChannelDigital)
             end
             xlim(app.DigitalFigures.DigiFig.(chanName),[1 1+display_interval*app.drta_Data.draq_p.ActualRate]);
         otherwise
-            pName = sprintf('Digital CH %.2d',uu);
+
     end
-    title(app.DigitalFigures.DigiFig.(chanName),pName);
+    time=app.drta_Data.p.start_display_time;
+    jj=1;
+    maxAmt = ceil(app.drta_Data.p.start_display_time+display_interval/dt)+1;
+    tick_label = cell([1 maxAmt]);
+    while time<(app.drta_Data.p.start_display_time+display_interval)
+        tick_label{jj}=num2str(time);
+        time=time+dt;
+        jj=jj+1;
+    end
+    tick_label{jj}=num2str(time);
+    app.DigitalFigures.DigiFig.(chanName).XTickLabel = tick_label;
+
+    xlim(app.DigitalFigures.DigiFig.(chanName),[1 1+display_interval*app.drta_Data.draq_p.ActualRate]);
+    % xlim(app.DigitalFigures.DigiFig.(chanName),[1 1+app.drta_Data.p.display_interval*app.drta_Data.draq_p.ActualRate]);
+
+    xticks(app.DigitalFigures.DigiFig.(chanName),0:d_samples:display_interval*app.drta_Data.draq_p.ActualRate);
+    chN = replace(chN,'_',' ');
+    chN = replace(chN,'-',' ');
+    title(app.DigitalFigures.DigiFig.(chanName),chN);
+    
 end
 app.DigitalFigures.FiguresBuild = 1;
 
