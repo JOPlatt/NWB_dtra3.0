@@ -176,18 +176,18 @@ for dch = 1:digital_total
         case 1
             if app.drta_Data.draq_d.num_board_dig_in_channels >= 8
                 app.drta_Main.ChShown.(digitalName2).Value = 1;
-                app.drta_Data.p.VisableChannelDigital(dch) = 1;
+                app.drta_Data.p.VisableDigital(dch) = 1;
             else
                 app.drta_Main.ChShown.(digitalName2).Value = 0;
-                app.drta_Data.p.VisableChannelDigital(dch) = 0;
+                app.drta_Data.p.VisableDigital(dch) = 0;
             end
         case 2
             app.drta_Main.ChShown.(digitalName2).Value = 1;
-            app.drta_Data.p.VisableChannelDigital(dch) = 1;
+            app.drta_Data.p.VisableDigital(dch) = 1;
         
         otherwise
             app.drta_Main.ChShown.(digitalName2).Value = 0;
-            app.drta_Data.p.VisableChannelDigital(dch) = 0;
+            app.drta_Data.p.VisableDigital(dch) = 0;
     end
     %moves the index to the next label location
     CurrentColumn = CurrentColumn + 2;
@@ -267,7 +267,7 @@ for ach = 1:analog_total
     app.drta_Main.ChShown.(CurrentChNum).ValueChangedFcn = createCallbackFcn(app,@AllChControl, true);
     %moves the index to the next label location
     app.drta_Main.ChShown.(CurrentChNum).Value = 1;
-    app.drta_Data.p.VisableChannelAnalog(ach) = 1;
+    app.drta_Data.p.VisableAnalog(ach) = 1;
     CurrentColumn = CurrentColumn + 2;
 end
 

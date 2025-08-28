@@ -6,7 +6,7 @@ Created by Jonathan Platt
 %}
 drtaNWB_GetTraceData(app,app.TrialNoDigit_EditField.Value);
 data = app.drta_Data.Signals.Digital;
-currentChan = find(app.drta_Data.p.VisableChannelDigital == 1);
+currentChan = find(app.drta_Data.p.VisableDigital == 1);
 if app.D_all_CheckBox.Value == 1
     display_interval = app.drta_Data.p.display_interval;
 else
@@ -33,14 +33,14 @@ if app.DigitalFigures.FiguresBuild == 0
     %     app.DigitalPlot_Grid.Children = tempt;
     %     app.DigitalPlot_Grid.reset
     % end
-    app.DigitalFigures.NumChannels = size(currentChan,2);
+    app.DigitalFigures.NumChannels = size(currentChan,1);
     ColumnSize = strings([1,app.DigitalFigures.NumChannels]);
-    for ss = 1:sum(app.drta_Data.p.VisableChannelDigital)
+    for ss = 1:sum(app.drta_Data.p.VisableDigital)
         ColumnSize{ss} = '1x';
 
     end
     app.DigitalPlot_Grid.RowHeight = ColumnSize;
-    for ii = 1:sum(app.drta_Data.p.VisableChannelDigital)
+    for ii = 1:sum(app.drta_Data.p.VisableDigital)
         uu = currentChan(ii);
         chanName = sprintf('DigitalCh%.2d',uu);
         app.DigitalFigures.DigiFig.(chanName) = uiaxes(app.DigitalPlot_Grid);
@@ -50,7 +50,7 @@ else
     cla(app.DigitalPlot_Grid.Children,"reset");
 end
 
-for ii = 1:sum(app.drta_Data.p.VisableChannelDigital)
+for ii = 1:sum(app.drta_Data.p.VisableDigital)
     uu = currentChan(ii);
     chN = app.drta_Main.digitalPlots.plotNames{uu};
     if ~contains(chN,'DigitalCh') && ~contains(chN,'Trigger')
