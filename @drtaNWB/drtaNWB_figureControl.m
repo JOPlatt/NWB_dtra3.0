@@ -341,7 +341,7 @@ if app.Flags.DataShownAs ~=12
             allTickLabels(nameplace) = lowTic(ss);
             nameplace = nameplace + 1;
         end
-        allTickLabels(nameplace) = AllChNames(ss);
+        allTickLabels(nameplace) = AllChNames{ss};
         nameplace = nameplace + 1;
         if sum(app.drta_Data.p.VisableChannel) < 11
             allTickLabels(nameplace) = higerTic(ss);

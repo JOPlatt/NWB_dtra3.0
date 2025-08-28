@@ -43,15 +43,15 @@ Dcount = 1;
 fnames = fieldnames(app.drta_Save.ChShown);
 for ss = 1:length(fnames)
     temp = app.drta_Save.ChShown.(fnames{ss}).Value;
-    if contains(fnames,'AnalogCh')
+    if contains(fnames{ss},'AnalogCh')
         app.drta_Save.p.VisableAnalog(Acount) = temp;
         Acount = Acount + 1;
     end
-    if contains(fnames,'DigitalCh')
+    if contains(fnames{ss},'DigitalCh')
         app.drta_Save.p.VisableDigital(Dcount) = temp;
         Dcount = Dcount + 1;
     end
-    if contains(fnames,'ChCB')
+    if contains(fnames{ss},'CHCB')
         app.drta_Save.p.VisableChannel(Ecount) = temp;
         Ecount = Ecount + 1;
     end

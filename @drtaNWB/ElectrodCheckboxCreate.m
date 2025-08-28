@@ -79,7 +79,7 @@ for fn = 1:channel_total
         app.drta_Main.ChShown.(CurrentChNum).Value = 0;
     end
     app.drta_Main.ChShown.(CurrentChNum).Tag = sprintf('E-%.3d',fn-1);
-    app.drta_Main.ChShown.NamesOnly(CurrentChNum) = sprintf('E-%.3d',fn-1);
+    app.drta_Main.ChShown.NamesOnly(fn) = {sprintf('E-%.3d',fn-1)};
     app.drta_Main.ChShown.(CurrentChNum).ValueChangedFcn = createCallbackFcn(app,@AllChControl, true);
     if fn < 11
         DiffTagName = append('DiffA00',num2str(fn-1));
@@ -143,6 +143,21 @@ for dch = 1:digital_total
     ChTitle.Value = digitalName1;
     app.drta_Main.ChannelNames.Digital{dch} = digitalName1;
     %label settings
+    
+    ChTitle.HorizontalAlignment = 'center';
+    ChTitle.FontSize = 14;
+    ChTitle.Layout.Row = CurrentRow;
+    ChTitle.Layout.Column = CurrentColumn;
+    CurrentChNum = sprintf('DigitalCh_label%.3d',dch-1);
+    app.drta_Plot.NameField.(CurrentChNum) = ChTitle;
+    % creating channel number for indexing
+    % if dch < 3
+    %     app.drta_Main.ChShown.(digitalName2).Value = 1;
+    %     app.drta_Data.p.VisableDigital(dch) = 1;
+    % else
+    %     app.drta_Main.ChShown.(digitalName2).Value = 0;
+    % end
+    %creating a checkbox
     if dch == 1
         digitalName2 = sprintf('Trigger');
     elseif dch == 2
@@ -150,19 +165,6 @@ for dch = 1:digital_total
     else
         digitalName2 = sprintf('D_%.3d',dch-3);
     end
-    ChTitle.HorizontalAlignment = 'center';
-    ChTitle.FontSize = 14;
-    ChTitle.Layout.Row = CurrentRow;
-    ChTitle.Layout.Column = CurrentColumn;
-    
-    % creating channel number for indexing
-    if dch < 3
-        app.drta_Main.ChShown.(digitalName2).Value = 1;
-        app.drta_Data.p.VisableDigital(dch) = 1;
-    else
-        app.drta_Main.ChShown.(digitalName2).Value = 0;
-    end
-    %creating a checkbox
     app.drta_Main.ChShown.(digitalName2) = uicheckbox(app.Channels_GridLayout);
     %checkbox settings
     app.drta_Main.ChShown.(digitalName2).Layout.Row = CurrentRow;
@@ -189,8 +191,7 @@ for dch = 1:digital_total
     end
     %moves the index to the next label location
     CurrentColumn = CurrentColumn + 2;
-    digitalName3 = sprintf('DigitalCh%.3d',dch-1);
-    app.drta_Plot.NameField.(digitalName3) = ChTitle;
+    digitalName3 = sprintf('BitandCh%.3d',dch-1);
     % adding channel choices to digital plot
     if dch < (app.drta_Data.draq_d.num_board_dig_in_channels + 1)
         if dch == 1
